@@ -3,18 +3,16 @@
   "version": "1.0.0",
   "displayName": "LXShades Common (Core)",
   "description": "LXShades' Common (Core) essentials for Unity: Tools and utilities for Unity Engine that'd ideally already be there. The missing pieces. Debug draws, inspector helpers, and more.",
-  "unity": "6.0",
+  "unity": "6000.0",
   "unityRelease": "1f1",
   "documentationUrl": "N/A",
   "changelogUrl": "N/A",
   "licensesUrl": "N/A",
-  "dependencies": {
-  },
   "keywords": [
-     "debug",
-     "draw",
-     "tool"
-   ],
+    "debug",
+    "draw",
+    "tool"
+  ],
   "author": {
     "name": "LXShades",
     "email": "plzdonttalk@me.ifearsocialsituations"
