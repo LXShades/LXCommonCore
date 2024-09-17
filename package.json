@@ -1,8 +1,8 @@
 {
-  "name": "com.lxshades.essentials.core",
+  "name": "com.lxshades.common.core",
   "version": "1.0.0",
-  "displayName": "LXShades Core Essentials",
-  "description": "LXShades' Core Essentials for Unity: Core tools and utilities for Unity Engine that'd ideally already be there. The missing pieces. Debug draws, inspector helpers, and more.",
+  "displayName": "LXShades Common (Core)",
+  "description": "LXShades' Common (Core) essentials for Unity: Tools and utilities for Unity Engine that'd ideally already be there. The missing pieces. Debug draws, inspector helpers, and more.",
   "unity": "6.0",
   "unityRelease": "1f1",
   "documentationUrl": "N/A",
