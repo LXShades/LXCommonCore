@@ -1,0 +1,18 @@
+{
+    "name": "LX.Common.Core.Editor",
+    "rootNamespace": "LX.Common.Core.Editor",
+    "references": [
+        "GUID:8732d2a7e4191f143b45b7e3728a5435"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,22 @@
+{
+  "name": "com.lxshades.essentials.core",
+  "version": "1.0.0",
+  "displayName": "LXShades Core Essentials",
+  "description": "LXShades' Core Essentials for Unity: Core tools and utilities for Unity Engine that'd ideally already be there. The missing pieces. Debug draws, inspector helpers, and more.",
+  "unity": "6.0",
+  "unityRelease": "1f1",
+  "documentationUrl": "N/A",
+  "changelogUrl": "N/A",
+  "licensesUrl": "N/A",
+  "dependencies": {
+  },
+  "keywords": [
+     "debug",
+     "draw",
+     "tool"
+   ],
+  "author": {
+    "name": "LXShades",
+    "email": "plzdonttalk@me.ifearsocialsituations"
+  }
+}
