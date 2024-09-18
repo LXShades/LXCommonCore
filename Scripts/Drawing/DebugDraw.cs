@@ -82,7 +82,7 @@ public static class DebugDraw
         {
             if (_lineMaterial == null)
             {
-                Shader shaderToUse = Shader.Find("Unlit/UnityMultiplayerEssentials/ThickLineShader");
+                Shader shaderToUse = Shader.Find("LXCommon/Core/ThickLineShader");
 
                 if (shaderToUse == null)
                 {
