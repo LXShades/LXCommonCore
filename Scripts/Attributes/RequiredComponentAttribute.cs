@@ -34,7 +34,7 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
             if (foundMissingComponent)
             {
                 error = null;
-                field.SetValue(field, foundMissingComponent);
+                field.SetValue(fieldTarget, foundMissingComponent);
                 return true;
             }
             else

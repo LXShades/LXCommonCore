@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace LX.Common.Core.Editor
 {
-    [CustomPropertyDrawer(typeof(RequiredFieldAttribute))]
+    [CustomPropertyDrawer(typeof(RequiredFieldAttribute), true)]
     public class RequiredFieldDrawer : PropertyDrawer
     {
         private int errorInfoBoxHeight = 16;
