@@ -1,5 +1,13 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using System.Linq.Expressions;
+using System;
+using System.Reflection;
+using System.Text;
+
+
+
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -64,6 +72,45 @@ namespace LX.Common.Core
 #endif
             }
             return condition;
+        }
+
+        public static void LogVars<T>(Expression<Func<T>> expression)
+        {
+            var expressionResult = expression.Compile().Invoke();
+
+            if (expression.Body is MethodCallExpression methodCall && expressionResult.GetType().Name.Contains("ValueTuple"))
+            {
+                var tupleType = expressionResult.GetType();
+                string[] values = new string[methodCall.Arguments.Count];
+                string[] names = new string[methodCall.Arguments.Count];
+
+                for (int idx = 0; idx < methodCall.Arguments.Count; idx++)
+                {
+                    if (tupleType.GetField($"Item{idx + 1}") is FieldInfo field)
+                    {
+                        values[idx] = field.GetValue(expressionResult).ToString();
+                        names[idx] = methodCall.Arguments[idx].ToString();
+                    }
+                }
+                LogVarsImpl(names, values);
+            }
+            else
+                LogVarsImpl(new[] { expression.ToString() }, new[] { expression.Compile()?.Invoke().ToString() });
+        }
+
+        private static void LogVarsImpl(string[] expressions, string[] values)
+        {
+            StringBuilder sb = new();
+            for (int idx = 0; idx < expressions.Length; idx++)
+            {
+                if (expressions[idx] != null && values[idx] != null)
+                {
+                    int startChar = Mathf.Max(expressions[idx].IndexOf("=>"), expressions[idx].IndexOf("{"), 0);
+
+                    sb.AppendLine($"{expressions[idx].Substring(startChar).Trim()}: {values[idx]}");
+                }
+            }
+            Debug.Log(sb.ToString());
         }
     }
 }

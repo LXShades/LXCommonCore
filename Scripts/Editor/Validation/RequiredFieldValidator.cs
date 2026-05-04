@@ -63,7 +63,9 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
     public static bool ValidateAndAutofillRequiredField(Component componentWithReference, KeyValuePair<FieldInfo, RequiredFieldAttribute> field, bool setDirtyIfChanged, out string error)
     {
-        if ((UnityEngine.Object)field.Key.GetValue(componentWithReference) == null)
+        // Use Unity Object == operator if available
+        object fieldValue = field.Key.GetValue(componentWithReference);
+        if ((fieldValue is UnityEngine.Object unityObject && unityObject == null) || fieldValue == null)
         {
             if (field.Value.canAutofill)
             {
