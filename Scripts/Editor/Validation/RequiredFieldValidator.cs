@@ -51,11 +51,20 @@ public class RequiredFieldValidator : AssetModificationProcessor
             {
                 GameObject prefab = PrefabUtility.GetCorrespondingObjectFromSource(obj);
 
-                var objOrPrefab = prefab ? prefab : obj;
-                if (objOrPrefab != null)
+                if (obj != null)
                 {
-                    ValidateAndAutofillRequiredFields(objOrPrefab, true, out string errors);
-                    EditorValidator.instance.SetHasValidationError(objOrPrefab, errors != null && errors.Length > 0, errors);
+                    // First validate the instance of the object. If the instance is fine, then we don't need to throw an error
+                    bool wasObjectModified = ValidateAndAutofillRequiredFields(obj, true, out string errors);
+                    EditorValidator.instance.SetHasValidationError(obj, errors != null && errors.Length > 0, errors);
+
+                    if (prefab)
+                    {
+                        // Let's try and correct the prefab as well.
+                        ValidateAndAutofillRequiredFields(prefab, true, out string secondaryErrors);
+
+                        // We don't actually care if the prefab is correct as this is a scene scan. We need the _instances_ to be correct
+                        // We're just applying our best fix to the source prefab, if we can. (this might get removed if it causes issues).
+                    }
                 }
             }
         });
