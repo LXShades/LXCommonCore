@@ -51,6 +51,11 @@ public static class VectorExtensions
     public static Vector3 WithZ(in this Vector3 vec, float z) => new Vector3(vec.x, vec.y, z);
 
     /// <summary>
+    /// Returns the vector lengthened or shortened to a specific length
+    /// </summary>
+    public static Vector3 WithLength(in this Vector3 vec, float length) => vec.sqrMagnitude > 0 ? vec * length / vec.magnitude : Vector3.zero;
+
+    /// <summary>
     /// Sets the horizontal component of the vector only
     /// </summary>
     public static void SetHorizontal(ref this Vector3 vec, Vector3 value)
