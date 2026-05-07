@@ -6,6 +6,7 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
 {
     public bool isAutoAssignable { get; private set; }
     public bool canAutoAssignFirstChild { get; private set; }
+    public bool canAutoAssignFirstParent { get; private set; }
 
     public override bool canAutofill => isAutoAssignable;
 
@@ -14,10 +15,11 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
     /// </summary>
     /// <param name="isAutoAssignable">If true, the editor can auto-assign components</param>
     /// <param name="canAutoAssignFirstChild">If true, the editor can auto-assign the first component it finds in the object's children, if isAutoAssignable is also enabled</param>
-    public RequiredComponentAttribute(bool isAutoAssignable = true, bool canAutoAssignFirstChild = false)
+    public RequiredComponentAttribute(bool isAutoAssignable = true, bool canAutoAssignFirstChild = false, bool canAutoAssignFirstParent = false)
     {
         this.isAutoAssignable = isAutoAssignable;
         this.canAutoAssignFirstChild = canAutoAssignFirstChild;
+        this.canAutoAssignFirstParent = canAutoAssignFirstParent;
     }
 
     public override bool TryAutofillField(object fieldTarget, FieldInfo field, out string error)
@@ -28,8 +30,16 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
         {
             Component foundMissingComponent = targetComponent.GetComponent(field.FieldType);
 
+            if (foundMissingComponent && targetComponent.GetComponents(field.FieldType).Length > 1)
+            {
+                error = $"{targetComponent.gameObject.name}'s {targetComponent.GetType().Name} found multiple possible component candidates for field '{field.Name}', so it cannot be reliably auto-filled.";
+                return false;
+            }
+
             if (foundMissingComponent == null && canAutoAssignFirstChild)
                 foundMissingComponent = targetComponent.GetComponentInChildren(field.FieldType);
+            if (foundMissingComponent == null && canAutoAssignFirstParent)
+                foundMissingComponent = targetComponent.GetComponentInParent(field.FieldType);
 
             if (foundMissingComponent)
             {
