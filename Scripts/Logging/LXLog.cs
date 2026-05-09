@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using System;
 using System.Reflection;
 using System.Text;
+using System.Collections.Generic;
+
 
 
 
@@ -16,8 +18,12 @@ namespace LX.Common.Core
 {
     public static class LXLog
     {
+        private static float spamResistantErrorCooldownSeconds = 5f;
+
+        private static Dictionary<string, double> cooldownEndTimeByError = new();
+
 #if UNITY_EDITOR
-        private static bool isIgnoringAsserts = false;
+        private static bool isIgnoringAlerts = false;
 
         [InitializeOnLoadMethod]
         private static void Init()
@@ -28,7 +34,7 @@ namespace LX.Common.Core
         private static void OnPlayModeStateChanged(PlayModeStateChange obj)
         {
             if (obj == PlayModeStateChange.ExitingEditMode)
-                isIgnoringAsserts = false;
+                isIgnoringAlerts = false;
         }
 #endif
 
@@ -54,17 +60,17 @@ namespace LX.Common.Core
                 Debug.LogError(errorMessage);
 
 #if UNITY_EDITOR
-                if (!isIgnoringAsserts)
+                if (!isIgnoringAlerts)
                 {
                     switch (EditorUtility.DisplayDialogComplex("Breaking Assert", errorMessage, "Continue Once", "Continue and Ignore Rest", "Stop Game"))
                     {
                         case 0:
                             break;
                         case 1:
-                            isIgnoringAsserts = true;
+                            isIgnoringAlerts = true;
                             break;
                         case 2:
-                            isIgnoringAsserts = true;
+                            isIgnoringAlerts = true;
                             EditorApplication.isPlaying = false;
                             break;
                     }
@@ -72,6 +78,19 @@ namespace LX.Common.Core
 #endif
             }
             return condition;
+        }
+
+        /// <summary>
+        /// Error that, if hit, will happen at a disruptively high frequency.
+        /// These errors are emitted instantly first time, but suppressed and emitted at a specific maximum rate during future calls.
+        /// </summary>
+        public static void ErrorSpamResistant(string errorMessage)
+        {
+            if (!cooldownEndTimeByError.TryGetValue(errorMessage, out double cooldownEndTime) || Time.realtimeSinceStartupAsDouble >= cooldownEndTime)
+            {
+                cooldownEndTimeByError[errorMessage] = Time.realtimeSinceStartupAsDouble + spamResistantErrorCooldownSeconds;
+                Debug.LogError(errorMessage);
+            }
         }
 
         public static void LogVars<T>(Expression<Func<T>> expression)
