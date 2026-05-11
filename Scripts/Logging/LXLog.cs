@@ -50,6 +50,39 @@ namespace LX.Common.Core
         }
 
         /// <summary>
+        /// Programmer error that should not happen, but unlikely to break the application; application is probably continuable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ValidOrError<T1>(bool condition, string errorMessage, in T1 value1)
+        {
+            if (!condition)
+                Debug.LogError($"{errorMessage} --- ({value1?.ToString()})");
+            return condition;
+        }
+
+        /// <summary>
+        /// Programmer error that should not happen, but unlikely to break the application; application is probably continuable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ValidOrError<T1, T2>(bool condition, string errorMessage, in T1 value1, in T2 value2)
+        {
+            if (!condition)
+                Debug.LogError($"{errorMessage} --- ({value1?.ToString()}; {value2?.ToString()})");
+            return condition;
+        }
+
+        /// <summary>
+        /// Programmer error that should not happen, but unlikely to break the application; application is probably continuable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ValidOrError<T1, T2, T3>(bool condition, string errorMessage, in T1 value1, in T2 value2, in T3 value3)
+        {
+            if (!condition)
+                Debug.LogError($"{errorMessage} --- ({value1?.ToString()}; {value2?.ToString()}; {value3?.ToString()})");
+            return condition;
+        }
+
+        /// <summary>
         /// Programmer error that should not happen and indicates an immediate issue
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
