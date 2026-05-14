@@ -4,6 +4,7 @@ using UnityEngine;
 public class RequiredFieldAttribute : PropertyAttribute
 {
     public virtual bool canAutofill => false;
+    public bool isOnlyRequiredOnInstances { get; protected set; }
 
     public virtual bool TryAutofillField(object fieldTarget, FieldInfo field, out string error)
     {

@@ -15,11 +15,13 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
     /// </summary>
     /// <param name="isAutoAssignable">If true, the editor can auto-assign components</param>
     /// <param name="canAutoAssignFirstChild">If true, the editor can auto-assign the first component it finds in the object's children, if isAutoAssignable is also enabled</param>
-    public RequiredComponentAttribute(bool isAutoAssignable = true, bool canAutoAssignFirstChild = false, bool canAutoAssignFirstParent = false)
+    /// <param name="isOnlyRequiredOnInstances">If true, this value can be null on prefabs and is only required on instances of the object</param>
+    public RequiredComponentAttribute(bool isAutoAssignable = true, bool canAutoAssignFirstChild = false, bool canAutoAssignFirstParent = false, bool isOnlyRequiredOnInstances = false)
     {
         this.isAutoAssignable = isAutoAssignable;
         this.canAutoAssignFirstChild = canAutoAssignFirstChild;
         this.canAutoAssignFirstParent = canAutoAssignFirstParent;
+        this.isOnlyRequiredOnInstances = isOnlyRequiredOnInstances;
     }
 
     public override bool TryAutofillField(object fieldTarget, FieldInfo field, out string error)

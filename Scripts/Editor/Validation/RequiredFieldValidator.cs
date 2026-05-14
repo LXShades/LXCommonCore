@@ -26,6 +26,7 @@ public class RequiredFieldValidator : AssetModificationProcessor
     {
         PrefabStage.prefabSaving += (GameObject obj) => 
         {
+            // Scan prefab
             ValidateAndAutofillRequiredFields(obj, true, out string errors);
             EditorValidator.instance.SetHasValidationError(obj, errors != null && errors.Length > 0, errors);
         };
@@ -72,6 +73,13 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
     public static bool ValidateAndAutofillRequiredField(Component componentWithReference, KeyValuePair<FieldInfo, RequiredFieldAttribute> field, bool setDirtyIfChanged, out string error)
     {
+        if (field.Value.isOnlyRequiredOnInstances && PrefabUtility.IsPartOfAnyPrefab(componentWithReference.gameObject))
+        {
+            // This value is expected or allowed to be null on prefabs
+            error = null;
+            return true;
+        }
+
         // Use Unity Object == operator if available
         object fieldValue = field.Key.GetValue(componentWithReference);
         if ((fieldValue is UnityEngine.Object unityObject && unityObject == null) || fieldValue == null)
