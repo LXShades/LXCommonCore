@@ -73,7 +73,7 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
     public static bool ValidateAndAutofillRequiredField(Component componentWithReference, KeyValuePair<FieldInfo, RequiredFieldAttribute> field, bool setDirtyIfChanged, out string error)
     {
-        if (field.Value.isOnlyRequiredOnInstances && PrefabUtility.IsPartOfAnyPrefab(componentWithReference.gameObject))
+        if (field.Value.isOnlyRequiredOnInstances && (PrefabUtility.IsPartOfPrefabAsset(componentWithReference.gameObject) || PrefabStageUtility.GetPrefabStage(componentWithReference.gameObject) != null))
         {
             // This value is expected or allowed to be null on prefabs
             error = null;
