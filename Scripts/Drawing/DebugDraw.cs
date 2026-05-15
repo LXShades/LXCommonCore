@@ -643,8 +643,8 @@ public static class DebugDraw
                 }
             }
 
-            mesh.SetColors(colors);
             mesh.SetVertices(vertices);
+            mesh.SetColors(colors);
             mesh.SetUVs(0, uvs);
 
             // there has to be a better way???
