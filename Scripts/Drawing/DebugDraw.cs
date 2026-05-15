@@ -109,6 +109,8 @@ public static class DebugDraw
 
     private static bool isDrawCallbackActive = false;
 
+    public static bool Enabled { get; set; }
+
     const float kRadsInCircle = Mathf.PI * 2f;
 
     private static List<DebugShape> currentDebugShapes = new List<DebugShape>();
@@ -139,6 +141,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawLine(Vector3 start, Vector3 end, Style style)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -152,6 +156,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawBox(Vector3 min, Vector3 max, Style style)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -197,6 +203,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawHorizontalGrid(Vector3 start, Vector3 end, float y, Style style, int numDivisions)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -216,6 +224,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawArrow(Vector3 start, Vector3 end, Style style)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -247,6 +257,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawCross(Vector3 position, float crossSize, Style style)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         float halfSize = crossSize * 0.5f;
@@ -265,6 +277,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawSphere(Vector3 position, float radius, Style style, int numLongitudeSegments = 4, int numCircleSegments = 16)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         float radsPerLongitude = kRadsInCircle / numLongitudeSegments;
@@ -306,6 +320,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawCircle(Vector3 position, float radius, Style style, int numSegments = 16)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -326,6 +342,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawCircle(Vector3 position, float radius, Style style, Vector3 up, int numSegments = 16)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -348,6 +366,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawCapsule(Vector3 start, Vector3 end, float radius, Style style, int numLongitudeSegments = 4, int numTipSegments = 8)
     {
+        if (!Enabled) return;
+
         RequestDrawThisFrame();
 
         DebugShape output = GetNewShape(style);
@@ -411,6 +431,8 @@ public static class DebugDraw
     /// </summary>
     public static void DrawCollider(Vector3 position, Collider collider, Style style)
     {
+        if (!Enabled) return;
+
         Vector3 lossyScale = collider.transform.lossyScale;
         switch (collider)
         {
@@ -435,6 +457,8 @@ public static class DebugDraw
     }
     public static void DrawCharacterController(CharacterController controller, Style style)
     {
+        if (!Enabled) return;
+
         Vector3 scale = controller.transform.lossyScale;
         float controllerRadius = controller.radius * Mathf.Max(scale.x, scale.z), controllerHeight = controller.height * scale.y;
         Vector3 center = controller.transform.TransformPoint(controller.center.x, controller.center.y, controller.center.z);
@@ -654,6 +678,9 @@ public static class DebugDraw
                 indices[idx] = idx;
 
             mesh.SetIndices(indices, MeshTopology.Lines, 0);
+
+            // Clear out remaining expired shapes, continuously, just in case no shape functions are called next frame.
+            StartNewShapeBufferIfNewFrame();
         }
         else
         {
