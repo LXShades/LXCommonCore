@@ -643,6 +643,7 @@ public static class DebugDraw
                 }
             }
 
+            mesh.Clear();
             mesh.SetVertices(vertices);
             mesh.SetColors(colors);
             mesh.SetUVs(0, uvs);

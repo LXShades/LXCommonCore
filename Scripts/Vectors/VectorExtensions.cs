@@ -250,6 +250,16 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Returns the closest point to 'point' on the infinite line starting at 'lineStart' and going in 'lineDirection'
+    /// </summary>
+    public static Vector3 ClosestPointOnInfiniteLine(Vector3 lineStart, Vector3 lineDirection, Vector3 point)
+    {
+        lineDirection.Normalize();
+        return lineStart + lineDirection * Vector3.Dot(lineDirection, point - lineStart);
+
+    }
+
+    /// <summary>
     /// Returns the Vector2 as a Vector3 with z=0f
     /// </summary>
     public static Vector3 ToVector3(in this Vector2 vec)
