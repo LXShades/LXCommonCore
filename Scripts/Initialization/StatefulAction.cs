@@ -12,6 +12,18 @@ namespace LX.Common.Core
             public Action Action;
         }
 
+        /// <summary>
+        /// If repeatable, the stateful action will fire whenever SetActive(true) is called, as well as if it is already active when someone subscribes
+        /// </summary>
+        /// <param name="inIsRepeatable"></param>
+        public StatefulAction(bool inIsRepeatable)
+        {
+            isRepeatable = inIsRepeatable;
+            IsActive = default;
+            pendingActions = default;
+        }
+
+        public readonly bool isRepeatable;
         public bool IsActive { get; private set; }
 
         private List<ActionAwaiter> pendingActions;
@@ -23,7 +35,8 @@ namespace LX.Common.Core
         {
             if (IsActive)
                 action?.Invoke();
-            else
+
+            if (!IsActive || isRepeatable)
                 (pendingActions ??= new()).Add(new ActionAwaiter() { Obj = awaiter, Action = action });
         }
 
@@ -32,7 +45,7 @@ namespace LX.Common.Core
         /// </summary>
         public void SetActive(bool inIsActive)
         {
-            if (inIsActive && !IsActive)
+            if (inIsActive && (!IsActive || isRepeatable))
             {
                 if (pendingActions != null)
                 {
@@ -41,7 +54,16 @@ namespace LX.Common.Core
                         if (actionAndAwaiter.Obj)
                             actionAndAwaiter.Action?.Invoke();
                     }
-                    pendingActions = null;
+
+                    if (!isRepeatable)
+                    {
+                        pendingActions = null;
+                    }
+                    else
+                    {
+                        // Keep the listener list tidy at least
+                        pendingActions.RemoveAll(x => x.Obj == null);
+                    }
                 }
             }
 
