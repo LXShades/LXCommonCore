@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if HAS_URP
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal;
+#endif
 
 /// <summary>
 /// Extended simple 3D debug draw functions supporting various shapes, without Gizmos or editor required
@@ -76,17 +81,21 @@ public static class DebugDraw
         public float creationTime;
     }
 
-    private static Material lineMaterial
+    public static Material LineMaterial
     {
         get
         {
             if (_lineMaterial == null)
             {
+#if HAS_URP
+                Shader shaderToUse = Shader.Find("LXCommon/Core/URP/ThickLineShader");
+#else
                 Shader shaderToUse = Shader.Find("LXCommon/Core/ThickLineShader");
+#endif
 
                 if (shaderToUse == null)
                 {
-                    Debug.LogWarning("[UnityMultiplayerEssentials.DebugDraw] For better debug lines in builds, add Unlit/UnityMultiplayerEssentials/ThickLineShader to Always Included Shaders. Using fallback.");
+                    Debug.LogWarning("[LX.Common.Core.DebugDraw] For better debug lines in builds, add Unlit/UnityMultiplayerEssentials/ThickLineShader to Always Included Shaders. Using fallback.");
                     shaderToUse = Shader.Find("Hidden/Internal-Colored");
                 }
                 _lineMaterial = new Material(shaderToUse);
@@ -473,6 +482,13 @@ public static class DebugDraw
             Camera.onPostRender -= OnFinalRenderDebugShapes;
             Camera.onPostRender += OnFinalRenderDebugShapes;
 
+#if HAS_URP
+            RenderPipelineManager.beginCameraRendering -= URP_PreCameraRender;
+            RenderPipelineManager.beginCameraRendering += URP_PreCameraRender;
+#endif
+
+
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.pauseStateChanged -= OnPauseStateChanged;
             UnityEditor.EditorApplication.pauseStateChanged += OnPauseStateChanged;
@@ -566,7 +582,7 @@ public static class DebugDraw
 #endif
     }
 
-    private static void OnFinalRenderDebugShapes(Camera cam)
+    internal static void OnFinalRenderDebugShapes(Camera cam)
     {
         // Draw the debug shapes here, if there are any
         if (currentDebugShapes.Count > 0)
@@ -575,8 +591,8 @@ public static class DebugDraw
                 return; // <--- Early out: This camera is not included for debug draws
 
 #pragma warning disable CS0618
-            lineMaterial.SetFloat("_LineThickness", lineThickness);
-            lineMaterial.SetPass(0);
+            LineMaterial.SetFloat("_LineThickness", lineThickness);
+            LineMaterial.SetPass(0);
 #pragma warning restore CS0618
 
             GL.PushMatrix();
@@ -609,6 +625,51 @@ public static class DebugDraw
         }
     }
 
+#if HAS_URP
+    internal static void OnFinalRenderDebugShapes_URP(Mesh mesh)
+    {
+        if (currentDebugShapes.Count > 0)
+        {
+            List<Vector3> vertices = new();
+            List<Color32> colors = new();
+            List<Vector2> uvs = new();
+            foreach (DebugShape shape in currentDebugShapes)
+            {
+                for (int i = 0, e = shape.points.Count / 2 * 2; i < e; i++)
+                {
+                    colors.Add(shape.style.color);
+                    vertices.Add(shape.points[i]);
+                    uvs.Add(new Vector2(shape.style.thickness, 0f));
+                }
+            }
+
+            mesh.SetColors(colors);
+            mesh.SetVertices(vertices);
+            mesh.SetUVs(0, uvs);
+
+            // there has to be a better way???
+            int[] indices = new int[vertices.Count];
+            for (int idx = 0; idx < indices.Length; idx++)
+                indices[idx] = idx;
+
+            mesh.SetIndices(indices, MeshTopology.Lines, 0);
+        }
+        else
+        {
+            RenderPipelineManager.beginCameraRendering -= URP_PreCameraRender;
+            isDrawCallbackActive = false;
+        }
+    }
+
+    private static ScriptableRenderPass srp = new DebugLinesPass();
+
+    private static void URP_PreCameraRender(ScriptableRenderContext arg1, Camera cam)
+    {
+        // Use the EnqueuePass method to inject a custom render pass
+        cam.GetUniversalAdditionalCameraData().scriptableRenderer.EnqueuePass(srp);
+    }
+#endif
+
 #if UNITY_EDITOR
     private static void OnPauseStateChanged(UnityEditor.PauseState pauseState)
     {
@@ -627,3 +688,42 @@ public static class DebugDraw
     }
 #endif
 }
+
+#if HAS_URP
+public class DebugLinesPass : ScriptableRenderPass
+{
+    private Mesh lineMesh;
+
+    private class PassData
+    {
+    }
+
+    public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+    {
+        var resourceData = frameData.Get<UniversalResourceData>();
+
+        using (var builder = renderGraph.AddRasterRenderPass<PassData>("Debug Line Pass", out var passData))
+        {
+            builder.AllowGlobalStateModification(true);
+            builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+            builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture);
+
+            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+            {
+                ExecutePass(data, context);
+            });
+        }
+    }
+
+    private void ExecutePass(PassData data, RasterGraphContext context)
+    {
+        if (lineMesh == null)
+            lineMesh = new Mesh();
+
+        DebugDraw.LineMaterial.SetPass(0);
+        DebugDraw.OnFinalRenderDebugShapes_URP(lineMesh);
+
+        context.cmd.DrawMesh(lineMesh, Matrix4x4.identity, DebugDraw.LineMaterial);
+    }
+}
+#endif
