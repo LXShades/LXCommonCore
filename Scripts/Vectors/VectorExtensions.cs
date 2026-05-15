@@ -260,6 +260,18 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Returns the closest point to 'point' on the finite line between 'lineStart' and 'lineEnd'
+    /// </summary>
+    public static Vector3 ClosestPointOnFiniteLine(Vector3 lineStart, Vector3 lineEnd, Vector3 point)
+    {
+        if (lineStart == lineEnd) return lineStart;
+
+        float distance = Vector3.Distance(lineStart, lineEnd);
+        Vector3 lineDirectionNormalised = (lineEnd - lineStart) / distance;
+        return lineStart + lineDirectionNormalised * Mathf.Clamp(Vector3.Dot(lineDirectionNormalised, point - lineStart), 0f, distance);
+    }
+
+    /// <summary>
     /// Returns the Vector2 as a Vector3 with z=0f
     /// </summary>
     public static Vector3 ToVector3(in this Vector2 vec)
