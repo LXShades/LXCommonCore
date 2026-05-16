@@ -102,7 +102,7 @@ namespace LX.Common.Core.Editor
                     if (!EditorUtility.DisplayDialog("Validation Errors in Project", sb.ToString(), "Yes, Run Game", "No, Stop Game"))
                         EditorApplication.isPlaying = false;
                 }
-                }
+            }
         }
     }
 }
