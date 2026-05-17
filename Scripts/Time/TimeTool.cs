@@ -81,4 +81,19 @@ public static class TimeTool
     {
         return (long)(time * ticksPerSecond) != (long)((time - deltaTime) * ticksPerSecond);
     }
+
+    /// <summary>
+    /// Simple quick seconds to 00:00 format time string
+    /// </summary>
+    private static char[] timerStringChars = new char[5];
+    public static string SecondsToStringMinuteHours(int seconds)
+    {
+        int secondsClamped = Mathf.Min(seconds, 60 * 99 + 59);
+        timerStringChars[0] = (char)('0' + secondsClamped / 60 / 10);
+        timerStringChars[1] = (char)('0' + (secondsClamped / 60) % 10);
+        timerStringChars[2] = ':';
+        timerStringChars[3] = (char)('0' + ((secondsClamped % 60) / 10));
+        timerStringChars[4] = (char)('0' + ((secondsClamped % 60) % 10));
+        return new string(timerStringChars);
+    }
 }
