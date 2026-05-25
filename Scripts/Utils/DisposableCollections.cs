@@ -5,11 +5,19 @@ using System.Runtime.InteropServices;
 
 namespace LX.Common.Core
 {
-    // todo in general
-    public class GenericDisposable<T>
+    public class DisposableList<T> : IDisposable
     {
-        public static List<GenericDisposable<T>> pooledInstances = new();
+        public List<T> list = new();
 
+        public static DisposableList<T> Create()
+        {
+            DisposableList<T> list = DisposablePool<DisposableList<T>>.RentExistingInstance();
+            if (list == null)
+                return DisposablePool<DisposableList<T>>.RentNewInstance(new DisposableList<T>());
+            return list;
+        }
+
+        public void Dispose() => DisposablePool<DisposableList<T>>.NotifyInstanceDisposed(this);
     }
 
     public class DisposableArray
