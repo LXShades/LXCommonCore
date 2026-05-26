@@ -83,6 +83,19 @@ public static class TimeTool
     }
 
     /// <summary>
+    /// Converts seconds to a frame number with the given frames per second.
+    /// Aims to be reversible - so SecondsToFrame(FrameToSeconds(...)) should return the original value
+    /// </summary>
+    public static int SecondsToFrame(double seconds, int framesPerSecond) => (int)(IncrementDoubleMinutely(seconds) * framesPerSecond);
+
+
+    /// <summary>
+    /// Converts a frame number to seconds with the given frames per second
+    /// Aims to be reversible - so SecondsToFrame(FrameToSeconds(...)) should return the original value
+    /// </summary>
+    public static double FrameToSeconds(int frame, int framesPerSecond) => (double)frame / framesPerSecond;
+
+    /// <summary>
     /// Simple quick seconds to 00:00 format time string
     /// </summary>
     private static char[] timerStringChars = new char[5];
