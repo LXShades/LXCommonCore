@@ -126,7 +126,11 @@ namespace LX.Common.Core
             }
         }
 
-        public static void LogVars<T>(Expression<Func<T>> expression)
+        /// <summary>
+        /// Logs variables
+        /// Usage: LXLog.Vars(() => new ValueTuple(varA, varB, varC...) );
+        /// </summary>
+        public static void Vars<T>(Expression<Func<T>> expression)
         {
             var expressionResult = expression.Compile().Invoke();
 
@@ -144,13 +148,13 @@ namespace LX.Common.Core
                         names[idx] = methodCall.Arguments[idx].ToString();
                     }
                 }
-                LogVarsImpl(names, values);
+                VarsImpl(names, values);
             }
             else
-                LogVarsImpl(new[] { expression.ToString() }, new[] { expression.Compile()?.Invoke().ToString() });
+                VarsImpl(new[] { expression.ToString() }, new[] { expression.Compile()?.Invoke().ToString() });
         }
 
-        private static void LogVarsImpl(string[] expressions, string[] values)
+        private static void VarsImpl(string[] expressions, string[] values)
         {
             StringBuilder sb = new();
             for (int idx = 0; idx < expressions.Length; idx++)
