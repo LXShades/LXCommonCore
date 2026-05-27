@@ -5,10 +5,7 @@ using System;
 using System.Reflection;
 using System.Text;
 using System.Collections.Generic;
-
-
-
-
+using System.Text.RegularExpressions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -145,7 +142,7 @@ namespace LX.Common.Core
                     if (tupleType.GetField($"Item{idx + 1}") is FieldInfo field)
                     {
                         values[idx] = field.GetValue(expressionResult).ToString();
-                        names[idx] = methodCall.Arguments[idx].ToString();
+                        names[idx] = Regex.Replace(methodCall.Arguments[idx].ToString(), "value\\(|\\+<>c__DisplayClass[0-9]*_[0-9]*\\)", "");
                     }
                 }
                 VarsImpl(names, values);
