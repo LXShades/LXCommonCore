@@ -25,7 +25,6 @@ namespace LX.Common.Core
 
         public static T RentNewInstance(T newInstance)
         {
-            instancesAvailableForRent.Add(newInstance);
             AddInstanceToPendingDisposal(newInstance);
             return newInstance;
         }
