@@ -17,7 +17,11 @@ namespace LX.Common.Core
             return list;
         }
 
-        public void Dispose() => DisposablePool<DisposableList<T>>.NotifyInstanceDisposed(this);
+        public void Dispose()
+        {
+            list.Clear();
+            DisposablePool<DisposableList<T>>.NotifyInstanceDisposed(this);
+        }
     }
 
     public class DisposableArray
