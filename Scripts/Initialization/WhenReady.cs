@@ -57,6 +57,15 @@ public static class WhenReady<T>
     }
 
     /// <summary>
+    /// Cancels an Execute task
+    /// </summary>
+    public static void Cancel(Component requester)
+    {
+        if (deferredCallers.TryGetValue(typeof(T), out List<Caller> callerList))
+            callerList.RemoveAll(x => x.requester == requester);
+    }
+
+    /// <summary>
     /// Called when an object is spawned to inform subscribers we're available now and execute the code. For stability you must call OnUnready when this object is no longer ready or available.
     /// </summary>
     public static void Register(T availableObject)
