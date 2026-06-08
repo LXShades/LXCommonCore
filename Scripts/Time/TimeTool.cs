@@ -101,7 +101,7 @@ public static class TimeTool
     private static char[] timerStringChars = new char[5];
     public static string SecondsToStringMinuteHours(int seconds)
     {
-        int secondsClamped = Mathf.Min(seconds, 60 * 99 + 59);
+        int secondsClamped = Mathf.Clamp(seconds, 0, 60 * 99 + 59);
         timerStringChars[0] = (char)('0' + secondsClamped / 60 / 10);
         timerStringChars[1] = (char)('0' + (secondsClamped / 60) % 10);
         timerStringChars[2] = ':';
