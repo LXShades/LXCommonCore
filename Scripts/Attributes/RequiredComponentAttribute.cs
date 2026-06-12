@@ -30,6 +30,12 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
 
         if (targetComponent)
         {
+            if (!typeof(Component).IsAssignableFrom(field.FieldType))
+            {
+                error = $"Field '{field.Name}' in {targetComponent.GetType().Name} (on {targetComponent.gameObject.name}) has a RequiredComponent attribute, but '{field.FieldType.Name}' is not a component class.";
+                return false;
+            }
+
             Component foundMissingComponent = targetComponent.GetComponent(field.FieldType);
 
             if (foundMissingComponent && targetComponent.GetComponents(field.FieldType).Length > 1)
