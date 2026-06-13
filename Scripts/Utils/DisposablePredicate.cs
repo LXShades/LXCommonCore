@@ -7,7 +7,7 @@ namespace LX.Common.Core
     {
         System.Predicate<Arg1> caller;
         public Func<Arg1, Capture1, bool> func;
-        Capture1 capture;
+        public Capture1 capture;
 
         public DisposablePredicate() => caller = Call;
 
@@ -24,6 +24,7 @@ namespace LX.Common.Core
         {
             var predicate = DisposablePool<DisposablePredicate<Arg1, Capture1>>.RentNewOrExistingInstance<DisposablePredicate<Arg1, Capture1>>();
             predicate.func = action;
+            predicate.capture = capture;
             return predicate;
         }
     }
