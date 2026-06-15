@@ -122,6 +122,18 @@ namespace LX.Common.Core
         }
 
         /// <summary>
+        /// Removes an awaiter awaiting e.g. WhenSet
+        /// </summary>
+        public void RemoveAwaiter(UnityEngine.Object awaiter)
+        {
+            if (awaiters != null)
+            {
+                using var predicate = DisposablePredicate.Create((Awaiter inList, UnityEngine.Object awaiterToRemove) => inList.Obj == awaiterToRemove, awaiter);
+                awaiters.RemoveAll(predicate.Call);
+            }
+        }
+
+        /// <summary>
         /// Sets whether this StatefulAction is active. When set, all pending actions and future will run until deactivated.
         /// </summary>
         public void SetValue(bool isSet, in TValue value)
