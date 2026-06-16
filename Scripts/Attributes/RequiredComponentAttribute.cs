@@ -35,6 +35,11 @@ public class RequiredComponentAttribute : RequiredFieldAttribute
                 error = $"Field '{field.Name}' in {targetComponent.GetType().Name} (on {targetComponent.gameObject.name}) has a RequiredComponent attribute, but '{field.FieldType.Name}' is not a component class.";
                 return false;
             }
+            if (typeof(Transform).IsAssignableFrom(field.FieldType))
+            {
+                error = $"Field '{field.Name}' in {targetComponent.GetType().Name} (on {targetComponent.gameObject.name}) needs filling. By default, Transforms are not auto-filled, as all objects have their own Transform which is unlikely to be the one you want.";
+                return false;
+            }
 
             Component foundMissingComponent = targetComponent.GetComponent(field.FieldType);
 
