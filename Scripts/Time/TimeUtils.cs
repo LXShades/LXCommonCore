@@ -1,7 +1,31 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public static class TimeTool
+/// <summary>
+/// Wrapper for common 'update every [x]' scenarios.
+/// </summary>
+[System.Serializable]
+public struct TickTracker
+{
+    public float Interval;
+    
+    private double LastTime;
+
+    /// <summary>
+    /// Returns true and updates internal time if interval has been reached
+    /// </summary>
+    public bool PopTick(double time)
+    {
+        if (time - LastTime >= Interval)
+        {
+            LastTime = time;
+            return true;
+        }
+        return false;
+    }
+}
+
+public static class TimeUtils
 {
     [StructLayout(LayoutKind.Explicit)]
     private struct FloatHelper
