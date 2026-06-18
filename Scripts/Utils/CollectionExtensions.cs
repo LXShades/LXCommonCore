@@ -18,5 +18,15 @@ namespace LX.Common.Core
             }
             return false;
         }
+
+        /// <summary>
+        /// Inserts an item at 0 in the array, and pushes the rest of the array up, discarding the final value
+        /// </summary>
+        public static void CircularInsertAtZero<T>(this T[] theArray, T itemToAppend)
+        {
+            for (int idx = theArray.Length - 1; idx >= 1; idx--)
+                theArray[idx] = theArray[idx - 1];
+            theArray[0] = itemToAppend;
+        }
     }
 }
