@@ -39,7 +39,7 @@ namespace LX.Common.Core
         /// Programmer error that should not happen, but unlikely to break the application; application is probably continuable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ValidOrError(bool condition, string errorMessage)
+        public static bool ValidOrError(bool condition, string errorMessage = "The passed condition was false, indicating an error")
         {
             if (!condition)
                 Debug.LogError(errorMessage);
