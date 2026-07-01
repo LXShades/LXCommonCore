@@ -81,22 +81,10 @@ namespace LX.Common.Core
         {
             public UnityEngine.Object Obj;
             public Action<TValue> ExecuteWhenSet;
-        }
-
-        /// <summary>
-        /// If repeatable, the stateful action will fire whenever SetActive(true) is called, as well as if it is already active when someone subscribes
-        /// </summary>
-        /// <param name="inIsRepeatable"></param>
-        public AwaitableValue(bool inIsRepeatable)
-        {
-            isRepeatable = inIsRepeatable;
-            IsSet = false;
-            awaiters = null;
-            Value = default;
+            public bool IsWatchingAllFutureChanges;
         }
 
         public TValue Value;
-        public readonly bool isRepeatable;
         public bool IsSet { get; private set; }
 
         private const int kListSizeBeforeRegularTrimming = 10;
@@ -104,14 +92,14 @@ namespace LX.Common.Core
         private List<Awaiter> awaiters;
 
         /// <summary>
-        /// Calls Action as soon as this is Active, or immediately if this is already Active
+        /// Calls Action as soon as this is Set, or immediately if this is already Set
         /// </summary>
         public void WhenSet(UnityEngine.Object awaiter, Action<TValue> executeWhenSet)
         {
             if (IsSet)
                 executeWhenSet?.Invoke(Value);
 
-            if (!IsSet || isRepeatable)
+            if (!IsSet)
             {
                 (awaiters ??= new()).Add(new Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSet });
 
@@ -122,7 +110,22 @@ namespace LX.Common.Core
         }
 
         /// <summary>
-        /// Removes an awaiter awaiting e.g. WhenSet
+        /// Calls Action as soon as this is Set, and whenever the value changes thereon to any other valid value.
+        /// </summary>
+        public void WhenSetOrChanged(UnityEngine.Object awaiter, Action<TValue> executeWhenSetOrChanged)
+        {
+            if (IsSet)
+                executeWhenSetOrChanged?.Invoke(Value);
+
+            (awaiters ??= new()).Add(new Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSetOrChanged, IsWatchingAllFutureChanges = true });
+
+            // Try and keep the list tidy regularly; don't want too much memory usage here
+            if (awaiters.Count > kListSizeBeforeRegularTrimming)
+                awaiters.RemoveAll(x => x.Obj == null);
+        }
+
+        /// <summary>
+        /// Removes the action that was awaiting values via e.g. WhenSet or WhenSetOrChanged for the given object
         /// </summary>
         public void RemoveAwaiter(UnityEngine.Object awaiter)
         {
@@ -138,28 +141,32 @@ namespace LX.Common.Core
         /// </summary>
         public void SetValue(bool isSet, in TValue value)
         {
-            if (isSet && (!IsSet || isRepeatable))
+            Value = value;
+            IsSet = isSet;
+
+            if (isSet)
             {
                 if (awaiters != null)
                 {
                     foreach (Awaiter actionAndAwaiter in awaiters)
                     {
                         if (actionAndAwaiter.Obj)
-                            actionAndAwaiter.ExecuteWhenSet?.Invoke(Value);
+                        {
+                            try
+                            {
+                                actionAndAwaiter.ExecuteWhenSet?.Invoke(value);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                            }
+                        }
                     }
 
-                    if (!isRepeatable)
-                        awaiters.Clear();
-                    else
-                    {
-                        // Keep the awaiter list tidy by removing null entries, anyway
-                        awaiters.RemoveAll(x => x.Obj == null);
-                    }
+                    // Remove all awaiters that are either not sticking around for future changes, or are dead
+                    awaiters.RemoveAll(x => !x.IsWatchingAllFutureChanges || x.Obj == null);
                 }
             }
-
-            IsSet = isSet;
-            Value = value;
         }
     }
 }
