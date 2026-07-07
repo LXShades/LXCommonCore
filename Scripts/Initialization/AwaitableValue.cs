@@ -72,8 +72,9 @@ namespace LX.Common.Core
     }
 
     /// <summary>
-    /// Kinda another stateful action, but with a value that can be awaited.
-    /// Naming convention slightly different cause I'm still workshopping this!
+    /// Kinda another stateful action, but with a value that can be awaited. Sort of a V2 of the above, in hopes of being more intuitive.
+    /// 
+    /// Use extension functions WhenSet, WhenSetOrChanged, RemoveAwaiter and SetValue to control this.
     /// </summary>
     public struct AwaitableValue<TValue>
     {
@@ -85,70 +86,73 @@ namespace LX.Common.Core
         }
 
         public TValue Value;
-        public bool IsSet { get; private set; }
+        public bool IsSet { get; internal set; }
 
-        private const int kListSizeBeforeRegularTrimming = 10;
+        internal const int kListSizeBeforeRegularTrimming = 10;
 
-        private List<Awaiter> awaiters;
+        internal List<Awaiter> awaiters;
+    }
 
+    public static class AwaitableValueExtensions
+    {
         /// <summary>
         /// Calls Action as soon as this is Set, or immediately if this is already Set
         /// </summary>
-        public void WhenSet(UnityEngine.Object awaiter, Action<TValue> executeWhenSet)
+        public static void WhenSet<TValue>(ref this AwaitableValue<TValue> awaitable, UnityEngine.Object awaiter, Action<TValue> executeWhenSet)
         {
-            if (IsSet)
-                executeWhenSet?.Invoke(Value);
+            if (awaitable.IsSet)
+                executeWhenSet?.Invoke(awaitable.Value);
 
-            if (!IsSet)
+            if (!awaitable.IsSet)
             {
-                (awaiters ??= new()).Add(new Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSet });
+                (awaitable.awaiters ??= new()).Add(new AwaitableValue<TValue>.Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSet });
 
                 // Try and keep the list tidy regularly; don't want too much memory usage here
-                if (awaiters.Count > kListSizeBeforeRegularTrimming)
-                    awaiters.RemoveAll(x => x.Obj == null);
+                if (awaitable.awaiters.Count > AwaitableValue<TValue>.kListSizeBeforeRegularTrimming)
+                    awaitable.awaiters.RemoveAll(x => x.Obj == null);
             }
         }
 
         /// <summary>
         /// Calls Action as soon as this is Set, and whenever the value changes thereon to any other valid value.
         /// </summary>
-        public void WhenSetOrChanged(UnityEngine.Object awaiter, Action<TValue> executeWhenSetOrChanged)
+        public static void WhenSetOrChanged<TValue>(ref this AwaitableValue<TValue> awaitable, UnityEngine.Object awaiter, Action<TValue> executeWhenSetOrChanged)
         {
-            if (IsSet)
-                executeWhenSetOrChanged?.Invoke(Value);
+            if (awaitable.IsSet)
+                executeWhenSetOrChanged?.Invoke(awaitable.Value);
 
-            (awaiters ??= new()).Add(new Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSetOrChanged, IsWatchingAllFutureChanges = true });
+            (awaitable.awaiters ??= new()).Add(new AwaitableValue<TValue>.Awaiter() { Obj = awaiter, ExecuteWhenSet = executeWhenSetOrChanged, IsWatchingAllFutureChanges = true });
 
             // Try and keep the list tidy regularly; don't want too much memory usage here
-            if (awaiters.Count > kListSizeBeforeRegularTrimming)
-                awaiters.RemoveAll(x => x.Obj == null);
+            if (awaitable.awaiters.Count > AwaitableValue<TValue>.kListSizeBeforeRegularTrimming)
+                awaitable.awaiters.RemoveAll(x => x.Obj == null);
         }
 
         /// <summary>
         /// Removes the action that was awaiting values via e.g. WhenSet or WhenSetOrChanged for the given object
         /// </summary>
-        public void RemoveAwaiter(UnityEngine.Object awaiter)
+        public static void RemoveAwaiter<TValue>(ref this AwaitableValue<TValue> awaitable, UnityEngine.Object awaiter)
         {
-            if (awaiters != null)
+            if (awaitable.awaiters != null)
             {
-                using var predicate = DisposablePredicate.Create((Awaiter inList, UnityEngine.Object awaiterToRemove) => inList.Obj == awaiterToRemove, awaiter);
-                awaiters.RemoveAll(predicate.Call);
+                using var predicate = DisposablePredicate.Create((AwaitableValue<TValue>.Awaiter inList, UnityEngine.Object awaiterToRemove) => inList.Obj == awaiterToRemove, awaiter);
+                awaitable.awaiters.RemoveAll(predicate.Call);
             }
         }
 
         /// <summary>
         /// Sets whether this StatefulAction is active. When set, all pending actions and future will run until deactivated.
         /// </summary>
-        public void SetValue(bool isSet, in TValue value)
+        public static void SetValue<TValue>(ref this AwaitableValue<TValue> awaitable, bool isSet, in TValue value)
         {
-            Value = value;
-            IsSet = isSet;
+            awaitable.Value = value;
+            awaitable.IsSet = isSet;
 
             if (isSet)
             {
-                if (awaiters != null)
+                if (awaitable.awaiters != null)
                 {
-                    foreach (Awaiter actionAndAwaiter in awaiters)
+                    foreach (AwaitableValue<TValue>.Awaiter actionAndAwaiter in awaitable.awaiters)
                     {
                         if (actionAndAwaiter.Obj)
                         {
@@ -164,7 +168,7 @@ namespace LX.Common.Core
                     }
 
                     // Remove all awaiters that are either not sticking around for future changes, or are dead
-                    awaiters.RemoveAll(x => !x.IsWatchingAllFutureChanges || x.Obj == null);
+                    awaitable.awaiters.RemoveAll(x => !x.IsWatchingAllFutureChanges || x.Obj == null);
                 }
             }
         }
