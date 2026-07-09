@@ -36,13 +36,13 @@ public class Timer
     /// <summary>
     /// Whether the timer is still ticking
     /// </summary>
-    public bool isRunning => Time.time < finishedTime;
+    public bool isRunning => Time.time < finishedTime || (finishedTime == startTime && startTime != -1.0f);
 
     /// <summary>The Time.time value when this timer was last started</summary>
-    public float startTime { get; private set; } = 0.0f;
+    public float startTime { get; private set; } = -1.0f;
 
     /// <summary>The Time.time value when this timer will be finished</summary>
-    public float finishedTime { get; private set; } = 0.0f;
+    public float finishedTime { get; private set; } = -1.0f;
 
     /// <summary>Returns whether the timer has just finished on this frame</summary>
     public bool hasJustFinished => Time.time >= finishedTime && Time.time - Time.deltaTime < finishedTime;

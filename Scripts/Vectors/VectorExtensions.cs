@@ -126,6 +126,19 @@ public static class VectorExtensions
         vec = vec + axis * (magnitude - Vector3.Dot(vec, axis));
     }
 
+
+    /// <summary>
+    /// Sets how far along the axis the vector goes by adding or subtracting the axis. The axis does not need to be normalized
+    /// </summary>
+    public static void SetAlongAxis(ref this Vector2 vec, Vector2 axis, float magnitude)
+    {
+        float mag = axis.sqrMagnitude;
+        if (mag <= 0.999f || mag >= 1.001f)
+            axis.Normalize();
+
+        vec = vec + axis * (magnitude - Vector2.Dot(vec, axis));
+    }
+
     /// <summary>
     /// Sets how far along the axis the vector goes by removing the vector until it no longer goes along the axis and adding the axis until magnitude is met.
     /// </summary>
