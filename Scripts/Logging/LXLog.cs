@@ -15,6 +15,8 @@ namespace LX.Common.Core
 {
     public static class LXLog
     {
+        public static bool ShouldLogMessagesPopup { get; private set; }
+
         private static float spamResistantErrorCooldownSeconds = 5f;
 
         private static Dictionary<string, double> cooldownEndTimeByError = new();
@@ -34,6 +36,16 @@ namespace LX.Common.Core
                 isIgnoringAlerts = false;
         }
 #endif
+
+        /// <summary>
+        /// Prints a popup-worthy message! This is captured by the LX.Common.Debugging module's LogMessages and has no effect on the standard Unity log, but for thoroughness it still runs through the Unity log system.
+        /// </summary>
+        public static void Popup(string message)
+        {
+            ShouldLogMessagesPopup = true;
+            Debug.Log(message);
+            ShouldLogMessagesPopup = false;
+        }
 
         /// <summary>
         /// Programmer error that should not happen, but unlikely to break the application; application is probably continuable
