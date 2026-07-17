@@ -95,6 +95,7 @@ public static class EditorSelectionHistory
             assetHistory.Clear();
             assetHistory.AddRange(assetHistoryString.Split(';'));
         }
+        currentAssetHistoryItemIndex = assetHistory.Count - 1;
     }
 
     private static void SaveHistory()
