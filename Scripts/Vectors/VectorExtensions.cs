@@ -56,6 +56,26 @@ public static class VectorExtensions
     public static Vector3 WithLength(in this Vector3 vec, float length) => vec.sqrMagnitude > 0 ? vec * length / vec.magnitude : Vector3.zero;
 
     /// <summary>
+    /// Returns the vector with the given input vector applied to a plane of the given normal.
+    /// Hard to explain. Equivalent to 'WithHorizontal' if plane normal is Vector3.up, where the input vector applies to the X and Z axes only. However, the plane normal can be arbitrary.
+    /// </summary>
+    public static Vector3 WithAlongPlane(in this Vector3 vec, Vector3 planeNormal, in Vector3 magnitudeAlongPlane)
+    {
+        Vector3 normalizedPlaneNormal = planeNormal.normalized;
+        return magnitudeAlongPlane + normalizedPlaneNormal * Vector3.Dot(vec, normalizedPlaneNormal);
+    }
+
+    /// <summary>
+    /// Returns the vector with the magnitude set along the given axis
+    /// For example if the axis is Vector3.up and the magnitude is 5, the vector will be whatever it was previously except y will be 5.
+    /// </summary>
+    public static Vector3 WithAlongAxis(in this Vector3 vec, Vector3 axis, float magnitudeAlongAxis)
+    {
+        Vector3 normalizedAxis = axis.normalized;
+        return vec + axis * (magnitudeAlongAxis - Vector3.Dot(vec, axis));
+    }
+
+    /// <summary>
     /// Sets the horizontal component of the vector only
     /// </summary>
     public static void SetHorizontal(ref this Vector3 vec, Vector3 value)
@@ -63,7 +83,7 @@ public static class VectorExtensions
         vec.x = value.x;
         vec.z = value.z;
     }
-    
+
     /// <summary>
     /// Returns the vector with its horizontal (x,z) components clamped to the given max magnitude
     /// </summary>
