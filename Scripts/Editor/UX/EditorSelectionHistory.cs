@@ -1,4 +1,5 @@
 using LX.Common.Core;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -17,6 +18,7 @@ public static class EditorSelectionHistory
     public static void OnLoaded()
     {
         EditorApplication.projectWindowItemOnGUI += OnGui;
+        EditorApplication.hierarchyWindowItemByEntityIdOnGUI += OnEntityGui;
         EditorApplication.delayCall += OnNewFrame;
 
         Selection.selectionChanged += OnSelectionChanged;
@@ -46,13 +48,25 @@ public static class EditorSelectionHistory
                 assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
             assetHistory.Add(Selection.assetGUIDs[0]);
             currentAssetHistoryItemIndex = assetHistory.Count - 1;
-
-            if (assetHistory.Count > kMaxHistoryLength)
-                assetHistory.RemoveRange(0, assetHistory.Count - kMaxHistoryLength);
         }
+        else if (Selection.objects != null && Selection.objects.Length == 1)
+        {
+            if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
+                assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
+            assetHistory.Add(EntityId.ToULong(Selection.objects[0].GetEntityId()).ToString());
+            currentAssetHistoryItemIndex = assetHistory.Count - 1;
+            // todo dupe code
+        }
+
+        if (assetHistory.Count > kMaxHistoryLength)
+            assetHistory.RemoveRange(0, assetHistory.Count - kMaxHistoryLength);
     }
 
-    private static void OnGui(string guid, Rect selectionRect)
+    private static void OnGui(string guid, Rect selectionRect) => PollMouseButtonsAndStepAssetHistory();
+
+    private static void OnEntityGui(EntityId entityId, Rect selectionRect) => PollMouseButtonsAndStepAssetHistory();
+
+    private static void PollMouseButtonsAndStepAssetHistory()
     {
         if (!hasDoneHistoryActionThisFrame)
         {
@@ -74,8 +88,17 @@ public static class EditorSelectionHistory
 
             if (loadedAsset && loadedAsset != Selection.activeObject)
             {
-                Selection.activeObject = loadedAsset;
                 isExpectingSelectionChangeDueToHistoryAccess = true;
+                Selection.activeObject = loadedAsset;
+            }
+            else if (ulong.TryParse(assetGuid, out ulong entityIdULong))
+            {
+                var obj = EditorUtility.EntityIdToObject(EntityId.FromULong(entityIdULong));
+                if (obj)
+                {
+                    isExpectingSelectionChangeDueToHistoryAccess = true;
+                    Selection.activeObject = obj;
+                }
             }
         }
         hasDoneHistoryActionThisFrame = true;

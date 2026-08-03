@@ -27,6 +27,11 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Returns the vertical component (y) of the vector
+    /// </summary>
+    public static Vector3 Vertical(in this Vector3 vec) => new Vector3(0, vec.y, 0);
+
+    /// <summary>
     /// Returns the horizontal components (x,z) of the vector, normalised
     /// </summary>
     public static Vector3 HorizontalNormalized(in this Vector3 vec)
