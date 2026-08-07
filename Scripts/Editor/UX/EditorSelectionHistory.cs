@@ -46,6 +46,7 @@ public static class EditorSelectionHistory
         {
             if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
                 assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
+            assetHistory.Remove(Selection.assetGUIDs[0]); // Remove dupes
             assetHistory.Add(Selection.assetGUIDs[0]);
             currentAssetHistoryItemIndex = assetHistory.Count - 1;
         }
@@ -53,7 +54,9 @@ public static class EditorSelectionHistory
         {
             if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
                 assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
-            assetHistory.Add(EntityId.ToULong(Selection.objects[0].GetEntityId()).ToString());
+            string entityString = EntityId.ToULong(Selection.objects[0].GetEntityId()).ToString();
+            assetHistory.Remove(entityString);
+            assetHistory.Add(entityString);
             currentAssetHistoryItemIndex = assetHistory.Count - 1;
             // todo dupe code
         }
