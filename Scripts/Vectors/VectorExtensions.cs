@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 
 public static class VectorExtensions
 {
@@ -88,6 +89,9 @@ public static class VectorExtensions
         vec.x = value.x;
         vec.z = value.z;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 Clamped(in this Vector3 vec, float maxMagnitude) => Vector3.ClampMagnitude(vec, maxMagnitude);
 
     /// <summary>
     /// Returns the vector with its horizontal (x,z) components clamped to the given max magnitude

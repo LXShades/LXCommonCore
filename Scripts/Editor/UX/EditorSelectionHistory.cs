@@ -2,6 +2,7 @@ using LX.Common.Core;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [InitializeOnLoad]
@@ -42,23 +43,19 @@ public static class EditorSelectionHistory
             return;
         }
 
-        if (Selection.assetGUIDs != null && Selection.assetGUIDs.Length == 1)
+        if (Selection.objects != null && Selection.objects.Length == 1)
+            ObjectToString(Selection.objects[0]);
+
+        if (Selection.objects != null && Selection.objects.Length == 1)
         {
+            // Remove remaining upcoming history items because we are creating a new history
             if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
                 assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
-            assetHistory.Remove(Selection.assetGUIDs[0]); // Remove dupes
-            assetHistory.Add(Selection.assetGUIDs[0]);
+
+            string objectString = ObjectToString(Selection.objects[0]);
+            assetHistory.Remove(objectString);
+            assetHistory.Add(objectString);
             currentAssetHistoryItemIndex = assetHistory.Count - 1;
-        }
-        else if (Selection.objects != null && Selection.objects.Length == 1)
-        {
-            if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
-                assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
-            string entityString = EntityId.ToULong(Selection.objects[0].GetEntityId()).ToString();
-            assetHistory.Remove(entityString);
-            assetHistory.Add(entityString);
-            currentAssetHistoryItemIndex = assetHistory.Count - 1;
-            // todo dupe code
         }
 
         if (assetHistory.Count > kMaxHistoryLength)
@@ -86,25 +83,68 @@ public static class EditorSelectionHistory
 
         if (assetHistory.IsValidIndex(currentAssetHistoryItemIndex))
         {
-            string assetGuid = assetHistory[currentAssetHistoryItemIndex];
-            var loadedAsset = AssetDatabase.LoadAssetByGUID(new GUID(assetGuid), typeof(UnityEngine.Object));
+            string historyItem = assetHistory[currentAssetHistoryItemIndex];
+            UnityEngine.Object loadedObject = StringToObject(historyItem);
 
-            if (loadedAsset && loadedAsset != Selection.activeObject)
+            if (loadedObject)
             {
                 isExpectingSelectionChangeDueToHistoryAccess = true;
-                Selection.activeObject = loadedAsset;
-            }
-            else if (ulong.TryParse(assetGuid, out ulong entityIdULong))
-            {
-                var obj = EditorUtility.EntityIdToObject(EntityId.FromULong(entityIdULong));
-                if (obj)
-                {
-                    isExpectingSelectionChangeDueToHistoryAccess = true;
-                    Selection.activeObject = obj;
-                }
+                Selection.activeObject = loadedObject;
             }
         }
+
         hasDoneHistoryActionThisFrame = true;
+    }
+
+    private static string ObjectToString(UnityEngine.Object obj)
+    {
+        bool isMainAsset = AssetDatabase.IsMainAsset(obj);
+        bool isSubAsset = AssetDatabase.IsSubAsset(obj);
+
+        if (isMainAsset || isSubAsset)
+            return $"{AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj))}";
+        else
+        {
+            string scene = (obj as GameObject)?.scene.path;
+            string sceneGuid = AssetDatabase.AssetPathToGUID(scene);
+
+            if (!string.IsNullOrEmpty(sceneGuid))
+                return $"{sceneGuid}.{EntityId.ToULong(obj.GetEntityId())}";
+        }
+
+        return "";
+    }
+
+    private static UnityEngine.Object StringToObject(string str)
+    {
+        int dotIdx = str.IndexOf('.');
+        string sceneGuid = str.Substring(0, dotIdx > 0 ? dotIdx : str.Length);
+        string objInScene = dotIdx >= 0 ? str.Substring(dotIdx + 1) : "";
+        ulong objInSceneAsEntityId = 0;
+
+        if (!string.IsNullOrEmpty(objInScene))
+            ulong.TryParse(objInScene, out objInSceneAsEntityId);
+
+        UnityEngine.Object sceneAsset = AssetDatabase.LoadAssetByGUID(new GUID(sceneGuid), typeof(UnityEngine.Object));
+        if (sceneAsset)
+        {
+            if (!string.IsNullOrEmpty(objInScene))
+            {
+                PrefabStage prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+
+                // If the scene/prefab is loaded we can select the object directly
+                if ((prefabStage != null && prefabStage.assetPath == scenePath)
+                        || EditorSceneManager.GetActiveScene().path == scenePath)
+                    return EditorUtility.EntityIdToObject(EntityId.FromULong(objInSceneAsEntityId));
+                else
+                    return sceneAsset; // Otherwise the scene is the best option we have right now
+            }
+            else
+                return sceneAsset;
+        }
+
+        return null;
     }
 
     private static void OnNewFrame()
