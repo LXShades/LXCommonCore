@@ -109,7 +109,7 @@ public static class DebugDraw
 
     private static bool isDrawCallbackActive = false;
 
-    public static bool Enabled { get; set; }
+    public static bool Enabled { get; set; } = true;
 
     const float kRadsInCircle = Mathf.PI * 2f;
 
