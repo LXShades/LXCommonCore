@@ -1,15 +1,61 @@
+using ImGuiNET;
 using LX.Common.Core;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+public class RecentAssetsEditorWindow : EditorWindow
+{
+    public void CreateGUI()
+    {
+        var scrollView = new ScrollView();
+        scrollView.style.flexGrow = new StyleFloat(1);
+        scrollView.style.flexShrink = new StyleFloat(1);
+        scrollView.contentContainer.style.flexDirection = FlexDirection.Row;
+        scrollView.contentContainer.style.flexWrap = Wrap.Wrap;
+
+        var recents = EditorSelectionHistory.AssetHistory;
+        for (int i = recents.Count - 1; i >= 0; i--)
+        {
+            UnityEngine.Object obj = EditorSelectionHistory.StringToObject(recents[i]);
+            if (obj)
+            {
+                Button button = new Button();
+                var icon = button.iconImage;
+                button.style.width = 128;
+                button.style.height = 128;
+                button.text = obj.name;
+                icon.texture = AssetPreview.GetAssetPreview(obj);
+                button.iconImage = icon;
+                button.style.flexDirection = FlexDirection.Column;
+                
+                scrollView.Add(button);
+            }
+        }
+
+        rootVisualElement.Add(scrollView);
+    }
+
+    public void Refresh()
+    {
+        rootVisualElement.Clear();
+        CreateGUI();
+        Repaint();
+    }
+}
 
 [InitializeOnLoad]
 public static class EditorSelectionHistory
 {
     private const int kMaxHistoryLength = 30;
     private static bool hasDoneHistoryActionThisFrame = false;
+
+    private static bool shouldIncludeFolders = false;
+
+    public static IReadOnlyList<string> AssetHistory => assetHistory.AsReadOnly();
 
     private static List<string> assetHistory = new();
     private static int currentAssetHistoryItemIndex;
@@ -29,6 +75,13 @@ public static class EditorSelectionHistory
         LoadHistory();
     }
 
+    [MenuItem("LX/Recent Assets")]
+    public static void RecentAssets()
+    {
+        EditorWindow wnd = EditorWindow.GetWindow<RecentAssetsEditorWindow>("Recent Assets");
+        wnd.Show();
+    }
+
     private static void OnBeforeScriptReload()
     {
         SaveHistory();
@@ -42,12 +95,12 @@ public static class EditorSelectionHistory
             isExpectingSelectionChangeDueToHistoryAccess = false;
             return;
         }
-
-        if (Selection.objects != null && Selection.objects.Length == 1)
-            ObjectToString(Selection.objects[0]);
-
+        
         if (Selection.objects != null && Selection.objects.Length == 1)
         {
+            if (!shouldIncludeFolders && AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(Selection.objects[0])))
+                return;
+
             // Remove remaining upcoming history items because we are creating a new history
             if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
                 assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
@@ -60,6 +113,9 @@ public static class EditorSelectionHistory
 
         if (assetHistory.Count > kMaxHistoryLength)
             assetHistory.RemoveRange(0, assetHistory.Count - kMaxHistoryLength);
+
+        if (EditorWindow.HasOpenInstances<RecentAssetsEditorWindow>())
+            EditorWindow.GetWindow<RecentAssetsEditorWindow>().Refresh();
     }
 
     private static void OnGui(string guid, Rect selectionRect) => PollMouseButtonsAndStepAssetHistory();
@@ -115,7 +171,7 @@ public static class EditorSelectionHistory
         return "";
     }
 
-    private static UnityEngine.Object StringToObject(string str)
+    public static UnityEngine.Object StringToObject(string str)
     {
         int dotIdx = str.IndexOf('.');
         string sceneGuid = str.Substring(0, dotIdx > 0 ? dotIdx : str.Length);
