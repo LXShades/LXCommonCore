@@ -19,6 +19,8 @@ public class RecentAssetsEditorWindow : EditorWindow
         scrollView.contentContainer.style.flexDirection = FlexDirection.Row;
         scrollView.contentContainer.style.flexWrap = Wrap.Wrap;
 
+        Refresh();
+
         rootVisualElement.Add(scrollView);
     }
 
