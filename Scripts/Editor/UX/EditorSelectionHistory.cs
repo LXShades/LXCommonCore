@@ -44,6 +44,12 @@ public class RecentAssetsEditorWindow : EditorWindow
                     icon.texture = AssetPreview.GetMiniThumbnail(obj);
                 button.iconImage = icon;
                 button.style.flexDirection = FlexDirection.Column;
+                button.clicked += () => {
+                    if (AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj))
+                        AssetDatabase.OpenAsset(obj);
+                    else
+                        Selection.activeObject = obj;
+                };
 
                 scrollView.Add(button);
             }
