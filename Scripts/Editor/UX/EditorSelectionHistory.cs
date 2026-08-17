@@ -9,13 +9,22 @@ using UnityEngine.UIElements;
 
 public class RecentAssetsEditorWindow : EditorWindow
 {
+    ScrollView scrollView;
+
     public void CreateGUI()
     {
-        var scrollView = new ScrollView();
+        scrollView = new ScrollView();
         scrollView.style.flexGrow = new StyleFloat(1);
         scrollView.style.flexShrink = new StyleFloat(1);
         scrollView.contentContainer.style.flexDirection = FlexDirection.Row;
         scrollView.contentContainer.style.flexWrap = Wrap.Wrap;
+
+        rootVisualElement.Add(scrollView);
+    }
+
+    public void Refresh()
+    {
+        scrollView.Clear();
 
         var recents = EditorSelectionHistory.AssetHistory;
         for (int i = recents.Count - 1; i >= 0; i--)
@@ -29,21 +38,14 @@ public class RecentAssetsEditorWindow : EditorWindow
                 button.style.height = 128;
                 button.text = obj.name;
                 icon.texture = AssetPreview.GetAssetPreview(obj);
+                if (icon.texture == null)
+                    icon.texture = AssetPreview.GetMiniThumbnail(obj);
                 button.iconImage = icon;
                 button.style.flexDirection = FlexDirection.Column;
-                
+
                 scrollView.Add(button);
             }
         }
-
-        rootVisualElement.Add(scrollView);
-    }
-
-    public void Refresh()
-    {
-        rootVisualElement.Clear();
-        CreateGUI();
-        Repaint();
     }
 }
 
@@ -115,7 +117,7 @@ public static class EditorSelectionHistory
             assetHistory.RemoveRange(0, assetHistory.Count - kMaxHistoryLength);
 
         if (EditorWindow.HasOpenInstances<RecentAssetsEditorWindow>())
-            EditorWindow.GetWindow<RecentAssetsEditorWindow>().Refresh();
+            EditorWindow.GetWindow<RecentAssetsEditorWindow>("Recent Assets", false).Refresh();
     }
 
     private static void OnGui(string guid, Rect selectionRect) => PollMouseButtonsAndStepAssetHistory();
