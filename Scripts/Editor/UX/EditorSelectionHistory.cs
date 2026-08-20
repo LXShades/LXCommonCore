@@ -38,17 +38,22 @@ public class RecentAssetsEditorWindow : EditorWindow
                 var icon = button.iconImage;
                 button.style.width = 128;
                 button.style.height = 128;
-                button.text = obj.name;
+                if (obj is GameObject go && !string.IsNullOrEmpty(go.scene.path))
+                    button.text = $"{obj.name}\n(in {go.scene.name})";
+                else
+                    button.text = obj.name;
                 icon.texture = AssetPreview.GetAssetPreview(obj);
                 if (icon.texture == null)
                     icon.texture = AssetPreview.GetMiniThumbnail(obj);
                 button.iconImage = icon;
                 button.style.flexDirection = FlexDirection.Column;
                 button.clicked += () => {
-                    if (AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj))
+                    if ((AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) && AssetDatabase.CanOpenAssetInEditor(obj.GetEntityId()))
                         AssetDatabase.OpenAsset(obj);
                     else
                         Selection.activeObject = obj;
+
+                    scrollView.verticalScroller.value = 0f;
                 };
 
                 scrollView.Add(button);
