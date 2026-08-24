@@ -119,11 +119,16 @@ public static class TimeUtils
     /// </summary>
     public static double FrameToSeconds(int frame, int framesPerSecond) => (double)frame / framesPerSecond;
 
+    public enum SecondsToStringFormat
+    {
+        MinutesColonSeconds,
+    }
+
     /// <summary>
     /// Simple quick seconds to 00:00 format time string
     /// </summary>
     private static char[] timerStringChars = new char[5];
-    public static string SecondsToStringMinuteHours(int seconds)
+    public static string SecondsToString(int seconds, SecondsToStringFormat format = SecondsToStringFormat.MinutesColonSeconds)
     {
         int secondsClamped = Mathf.Clamp(seconds, 0, 60 * 99 + 59);
         timerStringChars[0] = (char)('0' + secondsClamped / 60 / 10);
