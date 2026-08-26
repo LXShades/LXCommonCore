@@ -96,7 +96,7 @@ public static class VectorExtensions
     /// <summary>
     /// Returns the vector with its horizontal (x,z) components clamped to the given max magnitude
     /// </summary>
-    public static Vector3 ClampedHorizontally(ref this Vector3 vec, float magnitude)
+    public static Vector3 ClampedHorizontally(in this Vector3 vec, float magnitude)
     {
         Vector2 horizontal = new Vector2(vec.x, vec.z);
         float originalMagnitude = horizontal.magnitude;
@@ -113,9 +113,9 @@ public static class VectorExtensions
     }
 
     /// <summary>
-    /// Reduces the horizontal magnitude of the vector by the given amount (friction)
+    /// Returns a copy of the vector with the horizontal magnitude reduced by the given amount (friction), or to zero if the reduction amount exceeds its horizontal length
     /// </summary>
-    public static Vector3 ReducedHorizontally(ref this Vector3 vec, float reductionAmount)
+    public static Vector3 ReducedHorizontally(in this Vector3 vec, float reductionAmount)
     {
         Vector2 horizontalVec = new Vector2(vec.x, vec.z);
         float horizontalMagnitude = horizontalVec.magnitude;
