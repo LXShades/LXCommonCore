@@ -233,8 +233,7 @@ public static class VectorExtensions
     }
 
     /// <summary>
-    /// Pushes the sphere at spherePosition of radius 'radius' away from pointToAvoid if it overlaps the point.
-    /// The pushback goes as far along 'normal' as needed to push the point out of the sphere.
+    /// Pushes a sphere away from a point if it overlaps the point, pushing it along a specific normal vector until it deoverlaps.
     /// If the sphere would collide with the point if the sphere were going along an infinite line against normal, i.e. goes beyond it, the pushback will still occur
     /// </summary>
     public static Vector3 SphereAvoidPointAlongNormalUnclamped(Vector3 spherePosition, float sphereRadius, Vector3 pointToAvoid, Vector3 normal)
@@ -320,6 +319,16 @@ public static class VectorExtensions
         float distance = Vector3.Distance(lineStart, lineEnd);
         Vector3 lineDirectionNormalised = (lineEnd - lineStart) / distance;
         return lineStart + lineDirectionNormalised * Mathf.Clamp(Vector3.Dot(lineDirectionNormalised, point - lineStart), 0f, distance);
+    }
+
+    /// <summary>
+    /// Returns the larger of X or Z, considering only absolute (positive) value
+    /// </summary>
+    public static float MaxAbsAxisXZ(in this Vector3 vec)
+    {
+        float absX = Mathf.Abs(vec.x);
+        float absZ = Mathf.Abs(vec.z);
+        return absX > absZ ? absX : absZ;
     }
 
     /// <summary>
