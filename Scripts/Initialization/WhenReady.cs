@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// NOTE: THIS IS OLD - the preferred pattern is now to create a static AwaitableValue in the desired class.
+/// 
 /// Call WhenReady<ObjType>.Execute(x => ...) to run some code / get something on an object that might not have been spawned yet
 /// 
 /// Example:
