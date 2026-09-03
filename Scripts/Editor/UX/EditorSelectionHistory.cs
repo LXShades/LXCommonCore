@@ -25,6 +25,13 @@ public class RecentAssetsEditorWindow : EditorWindow
 
     public void Refresh()
     {
+        if (scrollView == null)
+        {
+            CreateGUI();
+            // CreateGUI calls Refresh itself
+            return;
+        }
+
         scrollView.Clear();
 
         var recents = EditorSelectionHistory.AssetHistory;
