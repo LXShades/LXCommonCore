@@ -332,6 +332,18 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Returns the closest distance between A and B along the axis where they are closest.
+    /// For example, if a = (1, 15, 23) and b = (2, 20, 29), the returned distance is 1 because the Z distance between them is 1.
+    /// </summary>
+    public static float ClosestAxisDistance(in Vector3 a, in Vector3 b)
+    {
+        float absX = Mathf.Abs(a.x - b.x);
+        float absY = Mathf.Abs(a.y - b.y);
+        float absZ = Mathf.Abs(a.z - b.z);
+        return Mathf.Min(absX, Mathf.Min(absY, absZ));
+    }
+
+    /// <summary>
     /// Returns the Vector2 as a Vector3 with z=0f
     /// </summary>
     public static Vector3 ToVector3(in this Vector2 vec)
