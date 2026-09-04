@@ -5,6 +5,19 @@ using System.Runtime.InteropServices;
 
 namespace LX.Common.Core
 {
+    public class DisposableHashSet<T> : IDisposable
+    {
+        public HashSet<T> set = new();
+
+        public static DisposableHashSet<T> Create() => DisposablePool<DisposableHashSet<T>>.RentNewOrExistingInstance<DisposableHashSet<T>>();
+
+        public void Dispose()
+        {
+            set.Clear();
+            DisposablePool<DisposableHashSet<T>>.NotifyInstanceDisposed(this);
+        }
+    }
+
     public class DisposableList<T> : IDisposable
     {
         public List<T> list = new();
