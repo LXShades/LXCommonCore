@@ -107,7 +107,8 @@ namespace LX.Common.Core
                 });
             }
 
-            arraysPendingDispose.RemoveAll(x => x.Target == this);
+            using var removeThis = DisposablePredicate.Create((GCHandle x, DisposableArray<T> y) => x.Target == y, this);
+            arraysPendingDispose.RemoveAll(removeThis.Call);
             arraysByTypeAndSize[value.Length].Add(this);
         }
     }
