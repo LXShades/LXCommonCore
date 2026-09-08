@@ -11,7 +11,7 @@ namespace LX.Common.Core
 
         public DisposablePredicate() => caller = Call;
 
-        public bool Call(Arg1 arg) => func(arg, capture);
+        private bool Call(Arg1 arg) => func(arg, capture);
 
         public void Dispose() => DisposablePool<DisposablePredicate<Arg1, Capture1>>.NotifyInstanceDisposed(this);
 

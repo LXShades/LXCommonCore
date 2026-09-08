@@ -18,6 +18,19 @@ namespace LX.Common.Core
         }
     }
 
+    public class DisposableDictionary<TKey, TValue> : IDisposable
+    {
+        public Dictionary<TKey, TValue> dict = new();
+
+        public static DisposableDictionary<TKey, TValue> Create() => DisposablePool<DisposableDictionary<TKey, TValue>>.RentNewOrExistingInstance<DisposableDictionary<TKey, TValue>>();
+
+        public void Dispose()
+        {
+            dict.Clear();
+            DisposablePool<DisposableDictionary<TKey, TValue>>.NotifyInstanceDisposed(this);
+        }
+    }
+
     public class DisposableList<T> : IDisposable
     {
         public List<T> list = new();
@@ -108,7 +121,7 @@ namespace LX.Common.Core
             }
 
             using var removeThis = DisposablePredicate.Create((GCHandle x, DisposableArray<T> y) => x.Target == y, this);
-            arraysPendingDispose.RemoveAll(removeThis.Call);
+            arraysPendingDispose.RemoveAll(removeThis);
             arraysByTypeAndSize[value.Length].Add(this);
         }
     }

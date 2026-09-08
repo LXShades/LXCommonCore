@@ -136,7 +136,7 @@ namespace LX.Common.Core
             if (awaitable.awaiters != null)
             {
                 using var predicate = DisposablePredicate.Create((AwaitableValue<TValue>.Awaiter inList, UnityEngine.Object awaiterToRemove) => inList.Obj == awaiterToRemove, awaiter);
-                awaitable.awaiters.RemoveAll(predicate.Call);
+                awaitable.awaiters.RemoveAll(predicate);
             }
         }
 
