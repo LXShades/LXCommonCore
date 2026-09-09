@@ -344,6 +344,16 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Gets the rotation angle in degrees between sourceForward and targetForward
+    /// </summary>
+    public static float FindRotationDegreesToTargetAlongUp(Vector3 sourceForward, Vector3 sourceRight, Vector3 targetForward)
+    {
+        sourceForward.Normalize();
+        sourceRight.Normalize();
+        return 90f - Mathf.Atan2(Vector3.Dot(targetForward, sourceForward), Vector3.Dot(targetForward, sourceRight)) * Mathf.Rad2Deg;
+    }
+
+    /// <summary>
     /// Returns the Vector2 as a Vector3 with z=0f
     /// </summary>
     public static Vector3 ToVector3(in this Vector2 vec)
