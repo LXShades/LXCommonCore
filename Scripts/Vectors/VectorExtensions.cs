@@ -42,6 +42,11 @@ public static class VectorExtensions
     }
 
     /// <summary>
+    /// Returns the horizontal magnitude of the vector (magnitude along X, Z)
+    /// </summary>
+    public static float HorizontalMagnitude(in this Vector3 vec) => new Vector2(vec.x, vec.z).magnitude;
+
+    /// <summary>
     /// Returns the vector with the X component changed. Great for temporarily modifying a single component of a property e.g transform.position = transform.position.WithX(0f);
     /// </summary>
     public static Vector3 WithX(in this Vector3 vec, float x) => new Vector3(x, vec.y, vec.z);
@@ -364,7 +369,7 @@ public static class VectorExtensions
     /// <summary>
     /// Returns the Vector2 as a Vector3 with its x and y mapped to x and z, with y=0
     /// </summary>
-    public static Vector3 ToVector3Horizontal(in this Vector2 vec)
+    public static Vector3 ToVector3XZ(in this Vector2 vec)
     {
         return new Vector3(vec.x, 0f, vec.y);
     }

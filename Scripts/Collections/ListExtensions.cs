@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace LX.Common.Core
@@ -45,5 +46,23 @@ namespace LX.Common.Core
     public static class ListExtensions
     {
         public static NonGCEnumerator<T>.ReadOnlyListEnumerable AsNonGCEnumerable<T>(this IReadOnlyList<T> list) => new NonGCEnumerator<T>.ReadOnlyListEnumerable(list);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool SetIsInList<T>(this List<T> list, T item, bool isInList)
+        {
+            int oldLen = list.Count;
+            bool containsItem = list.Contains(item);
+            if (isInList)
+            {
+                if (!containsItem)
+                    list.Add(item);
+            }
+            else
+            {
+                if (containsItem)
+                    list.Remove(item);
+            }
+            return list.Count != oldLen;
+        }
     }
 }

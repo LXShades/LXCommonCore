@@ -6,17 +6,17 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class RequiredFieldValidator : AssetModificationProcessor
+public class AutofillableFieldValidator : AssetModificationProcessor
 {
     private struct RequiredFieldInfo
     {
-        public KeyValuePair<FieldInfo, RequiredFieldAttribute>[] requiredFields;
+        public KeyValuePair<FieldInfo, AutofillableFieldAttribute>[] requiredFields;
     }
 
     // todo: make sure refreshed if another assembly reloads
     private static Dictionary<System.Type, RequiredFieldInfo> componentReferenceInfoByType = new();
 
-    private static readonly List<KeyValuePair<FieldInfo, RequiredFieldAttribute>> tempFieldList = new();
+    private static readonly List<KeyValuePair<FieldInfo, AutofillableFieldAttribute>> tempFieldList = new();
     private static readonly List<Component> tempComponents = new();
 
     private static StringBuilder tempUnavailableComponentWarnings = new();
@@ -71,13 +71,13 @@ public class RequiredFieldValidator : AssetModificationProcessor
         });
     }
 
-    public static bool ValidateAndAutofillRequiredField(Component componentWithReference, KeyValuePair<FieldInfo, RequiredFieldAttribute> field, bool setDirtyIfChanged, out string error)
+    public static bool ValidateAndAutofillRequiredField(Component componentWithReference, KeyValuePair<FieldInfo, AutofillableFieldAttribute> field, bool setDirtyIfChanged, out string error)
     {
-        if (field.Value.isOnlyRequiredOnInstances && (PrefabUtility.IsPartOfPrefabAsset(componentWithReference.gameObject) || PrefabStageUtility.GetPrefabStage(componentWithReference.gameObject) != null))
+        if (field.Value.isValueRequired && field.Value.isOnlyRequiredOnInstances && (PrefabUtility.IsPartOfPrefabAsset(componentWithReference.gameObject) || PrefabStageUtility.GetPrefabStage(componentWithReference.gameObject) != null))
         {
             // This value is expected or allowed to be null on prefabs
             error = null;
-            return true;
+            return false; // was not modified
         }
 
         // Use Unity Object == operator if available
@@ -97,19 +97,17 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
                     return true;
                 }
-                return false;
             }
-            else
+
+            if (field.Value.isValueRequired)
             {
                 error = $"{componentWithReference.gameObject.name}'s {componentWithReference.GetType().Name} needs a user-provided value in '{field.Key.Name}' as it is a required field that cannot be auto-assigned.";
                 return false;
             }
         }
-        else
-        {
-            error = null;
-            return false;
-        }
+
+        error = null;
+        return false;
     }
 
     public static bool ValidateAndAutofillRequiredFields(GameObject targetObject, bool setDirtyIfChanged, out string warnings)
@@ -124,7 +122,7 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
             if (requiredFieldInfo.requiredFields != null)
             {
-                foreach (KeyValuePair<FieldInfo, RequiredFieldAttribute> field in requiredFieldInfo.requiredFields)
+                foreach (KeyValuePair<FieldInfo, AutofillableFieldAttribute> field in requiredFieldInfo.requiredFields)
                 {
                     objectIsDirty |= ValidateAndAutofillRequiredField(targetComponent, field, setDirtyIfChanged, out string error);
 
@@ -146,9 +144,9 @@ public class RequiredFieldValidator : AssetModificationProcessor
 
             foreach (FieldInfo field in behaviourType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy))
             {
-                RequiredFieldAttribute requiredFieldAttribute = field.GetCustomAttribute<RequiredFieldAttribute>();
-                if (requiredFieldAttribute != null)
-                    tempFieldList.Add(new KeyValuePair<FieldInfo, RequiredFieldAttribute>(field, requiredFieldAttribute));
+                AutofillableFieldAttribute autofillableFieldAttribute = field.GetCustomAttribute<AutofillableFieldAttribute>();
+                if (autofillableFieldAttribute != null)
+                    tempFieldList.Add(new KeyValuePair<FieldInfo, AutofillableFieldAttribute>(field, autofillableFieldAttribute));
             }
 
             if (tempFieldList.Count > 0)

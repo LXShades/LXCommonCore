@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace LX.Common.Core.Editor
 {
-    [CustomPropertyDrawer(typeof(RequiredFieldAttribute), true)]
-    public class RequiredFieldDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(AutofillableFieldAttribute), true)]
+    public class AutofillableFieldDrawer : PropertyDrawer
     {
         private int errorInfoBoxHeight = 16;
 
@@ -20,7 +20,7 @@ namespace LX.Common.Core.Editor
                 FieldInfo field = objectType.GetField(property.name);
 
                 if (field != null)
-                    RequiredFieldValidator.ValidateAndAutofillRequiredField(targetBehaviour, new KeyValuePair<FieldInfo, RequiredFieldAttribute>(field, attribute as RequiredFieldAttribute), true, out errors);
+                    AutofillableFieldValidator.ValidateAndAutofillRequiredField(targetBehaviour, new KeyValuePair<FieldInfo, AutofillableFieldAttribute>(field, attribute as AutofillableFieldAttribute), true, out errors);
             }
 
             var oldColor = GUI.color;
@@ -44,7 +44,7 @@ namespace LX.Common.Core.Editor
                 FieldInfo field = objectType.GetField(property.name);
 
                 if (field != null)
-                    return RequiredFieldValidator.ValidateAndAutofillRequiredField(targetBehaviour, new KeyValuePair<FieldInfo, RequiredFieldAttribute>(field, attribute as RequiredFieldAttribute), true, out errors);
+                    return AutofillableFieldValidator.ValidateAndAutofillRequiredField(targetBehaviour, new KeyValuePair<FieldInfo, AutofillableFieldAttribute>(field, attribute as AutofillableFieldAttribute), true, out errors);
             }
             errors = null;
             return false;
