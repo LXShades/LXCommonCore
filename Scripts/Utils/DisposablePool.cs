@@ -11,7 +11,7 @@ namespace LX.Common.Core
         private static List<GCHandle> instancesPendingDispose = new();
 
         [ThreadStatic]
-        private static ListClearer listClearer = new();
+        private static ListClearer listClearer; // uninitialized! because init only happens on one thread!
 
         public class ListClearer
         {
@@ -64,7 +64,7 @@ namespace LX.Common.Core
             if (instancesPendingDispose.RemoveAll(x => x.Target == null) != 0)
                 Debug.LogError($"A GenericDisposable was improperly disposed - it did not exist in our list ({typeof(T).FullName})");
 
-            listClearer.instance = instance;
+            (listClearer ??= new()).instance = instance;
             instancesPendingDispose.RemoveAll(listClearer.predicate);
             instancesAvailableForRent.Add(instance);
         }
