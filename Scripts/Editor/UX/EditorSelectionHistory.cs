@@ -192,7 +192,7 @@ namespace LX.Common.Core.Editor
             if (assetHistoryString != null)
             {
                 assetHistory.Clear();
-                assetHistory.AddRange(selectionHistoryString.Split(';'));
+                assetHistory.AddRange(assetHistoryString.Split(';'));
             }
 
             currentSelectionHistoryItemIndex = selectionHistory.Count - 1;
