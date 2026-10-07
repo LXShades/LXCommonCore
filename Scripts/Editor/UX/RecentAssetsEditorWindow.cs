@@ -7,9 +7,12 @@ namespace LX.Common.Core.Editor
     public class RecentAssetsEditorWindow : EditorWindow
     {
         ScrollView scrollView;
+        Toggle assetsOnlyToggle;
 
         public void CreateGUI()
         {
+            assetsOnlyToggle = new UnityEngine.UIElements.Toggle("Assets only (exclude in-scene)");
+            assetsOnlyToggle.RegisterValueChangedCallback(x => Refresh());
             scrollView = new ScrollView();
             scrollView.style.flexGrow = new StyleFloat(1);
             scrollView.style.flexShrink = new StyleFloat(1);
@@ -19,6 +22,7 @@ namespace LX.Common.Core.Editor
             Refresh();
 
             rootVisualElement.Clear();
+            rootVisualElement.Add(assetsOnlyToggle);
             rootVisualElement.Add(scrollView);
         }
 
@@ -37,13 +41,18 @@ namespace LX.Common.Core.Editor
             for (int i = recents.Count - 1; i >= 0; i--)
             {
                 UnityEngine.Object obj = EditorSelectionHistory.StringToObject(recents[i]);
+                GameObject go = obj as GameObject;
+
+                if (go && !string.IsNullOrEmpty(go.scene.name) && assetsOnlyToggle.value)
+                    continue;
+
                 if (obj)
                 {
                     Button button = new Button();
                     var icon = button.iconImage;
                     button.style.width = 128;
                     button.style.height = 128;
-                    if (obj is GameObject go && !string.IsNullOrEmpty(go.scene.path))
+                    if (go && !string.IsNullOrEmpty(go.scene.path))
                         button.text = $"{obj.name}\n(in {go.scene.name})";
                     else
                         button.text = obj.name;
@@ -53,9 +62,9 @@ namespace LX.Common.Core.Editor
                     button.iconImage = icon;
                     button.style.flexDirection = FlexDirection.Column;
                     button.clicked += () => {
-                        if ((AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) && AssetDatabase.CanOpenAssetInEditor(obj.GetEntityId()))
+                        /*if ((AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) && AssetDatabase.CanOpenAssetInEditor(obj.GetEntityId()))
                             AssetDatabase.OpenAsset(obj);
-                        else
+                        else*/
                             Selection.activeObject = obj;
 
                         scrollView.verticalScroller.value = 0f;
