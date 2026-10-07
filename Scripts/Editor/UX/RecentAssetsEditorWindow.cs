@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,12 +8,12 @@ namespace LX.Common.Core.Editor
     public class RecentAssetsEditorWindow : EditorWindow
     {
         ScrollView scrollView;
-        Toggle assetsOnlyToggle;
+        Toggle includeSceneSelectionsToggle;
 
         public void CreateGUI()
         {
-            assetsOnlyToggle = new UnityEngine.UIElements.Toggle("Assets only (exclude in-scene)");
-            assetsOnlyToggle.RegisterValueChangedCallback(x => Refresh());
+            includeSceneSelectionsToggle = new UnityEngine.UIElements.Toggle("Include in-scene selections (not just assets)");
+            includeSceneSelectionsToggle.RegisterValueChangedCallback(x => Refresh());
             scrollView = new ScrollView();
             scrollView.style.flexGrow = new StyleFloat(1);
             scrollView.style.flexShrink = new StyleFloat(1);
@@ -22,7 +23,7 @@ namespace LX.Common.Core.Editor
             Refresh();
 
             rootVisualElement.Clear();
-            rootVisualElement.Add(assetsOnlyToggle);
+            rootVisualElement.Add(includeSceneSelectionsToggle);
             rootVisualElement.Add(scrollView);
         }
 
@@ -37,13 +38,13 @@ namespace LX.Common.Core.Editor
 
             scrollView.Clear();
 
-            var recents = EditorSelectionHistory.AssetHistory;
+            IReadOnlyList<string> recents = includeSceneSelectionsToggle.value ? EditorSelectionHistory.SelectionHistory : EditorSelectionHistory.AssetHistory;
             for (int i = recents.Count - 1; i >= 0; i--)
             {
                 UnityEngine.Object obj = EditorSelectionHistory.StringToObject(recents[i]);
                 GameObject go = obj as GameObject;
 
-                if (go && !string.IsNullOrEmpty(go.scene.name) && assetsOnlyToggle.value)
+                if (go && !string.IsNullOrEmpty(go.scene.name) && includeSceneSelectionsToggle.value)
                     continue;
 
                 if (obj)

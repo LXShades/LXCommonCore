@@ -10,15 +10,18 @@ namespace LX.Common.Core.Editor
     [InitializeOnLoad]
     public static class EditorSelectionHistory
     {
-        private const int kMaxHistoryLength = 30;
+        private const int kMaxSelectionHistoryLength = 30;
+        private const int kMaxAssetHistoryLength = 30;
         private static bool hasDoneHistoryActionThisFrame = false;
 
         private static bool shouldIncludeFolders = false;
 
+        public static IReadOnlyList<string> SelectionHistory => selectionHistory.AsReadOnly();
         public static IReadOnlyList<string> AssetHistory => assetHistory.AsReadOnly();
 
+        private static List<string> selectionHistory = new();
         private static List<string> assetHistory = new();
-        private static int currentAssetHistoryItemIndex;
+        private static int currentSelectionHistoryItemIndex;
         private static bool isExpectingSelectionChangeDueToHistoryAccess;
 
         [InitializeOnLoadMethod]
@@ -61,18 +64,26 @@ namespace LX.Common.Core.Editor
                 if (!shouldIncludeFolders && AssetDatabase.IsValidFolder(AssetDatabase.GetAssetPath(Selection.objects[0])))
                     return;
 
-                // Remove remaining upcoming history items because we are creating a new history
-                if (currentAssetHistoryItemIndex + 1 < assetHistory.Count)
-                    assetHistory.RemoveRange(currentAssetHistoryItemIndex + 1, assetHistory.Count - (currentAssetHistoryItemIndex + 1));
+                Object selectedObject = Selection.objects[0];
+                string objectAsString = ObjectToString(selectedObject);
+                // Asset history is simple, just add latest and ensure there's just one of each
+                if (!(selectedObject is GameObject selectedGameObject) || string.IsNullOrEmpty(selectedGameObject.scene.name))
+                {
+                    assetHistory.Remove(objectAsString);
+                    assetHistory.Add(objectAsString);
+                }
 
-                string objectString = ObjectToString(Selection.objects[0]);
-                assetHistory.Remove(objectString);
-                assetHistory.Add(objectString);
-                currentAssetHistoryItemIndex = assetHistory.Count - 1;
+                // Remove remaining upcoming history items because we are creating a new history
+                if (currentSelectionHistoryItemIndex + 1 < selectionHistory.Count)
+                    selectionHistory.RemoveRange(currentSelectionHistoryItemIndex + 1, selectionHistory.Count - (currentSelectionHistoryItemIndex + 1));
+
+                selectionHistory.Remove(objectAsString);
+                selectionHistory.Add(objectAsString);
+                currentSelectionHistoryItemIndex = selectionHistory.Count - 1;
             }
 
-            if (assetHistory.Count > kMaxHistoryLength)
-                assetHistory.RemoveRange(0, assetHistory.Count - kMaxHistoryLength);
+            if (selectionHistory.Count > kMaxSelectionHistoryLength)
+                selectionHistory.RemoveRange(0, selectionHistory.Count - kMaxSelectionHistoryLength);
 
             if (EditorWindow.HasOpenInstances<RecentAssetsEditorWindow>())
                 EditorWindow.GetWindow<RecentAssetsEditorWindow>("Recent Assets", false).Refresh();
@@ -95,11 +106,11 @@ namespace LX.Common.Core.Editor
 
         private static void StepAssetHistory(int offset)
         {
-            currentAssetHistoryItemIndex = Mathf.Clamp(currentAssetHistoryItemIndex + offset, assetHistory.Count > 0 ? 0 : -1, assetHistory.Count - 1);
+            currentSelectionHistoryItemIndex = Mathf.Clamp(currentSelectionHistoryItemIndex + offset, selectionHistory.Count > 0 ? 0 : -1, selectionHistory.Count - 1);
 
-            if (assetHistory.IsValidIndex(currentAssetHistoryItemIndex))
+            if (selectionHistory.IsValidIndex(currentSelectionHistoryItemIndex))
             {
-                string historyItem = assetHistory[currentAssetHistoryItemIndex];
+                string historyItem = selectionHistory[currentSelectionHistoryItemIndex];
                 UnityEngine.Object loadedObject = StringToObject(historyItem);
 
                 if (loadedObject)
@@ -171,17 +182,25 @@ namespace LX.Common.Core.Editor
 
         private static void LoadHistory()
         {
+            string selectionHistoryString = PlayerPrefs.GetString("UserRecentSelectionHistory");
+            if (selectionHistoryString != null)
+            {
+                selectionHistory.Clear();
+                selectionHistory.AddRange(selectionHistoryString.Split(';'));
+            }
             string assetHistoryString = PlayerPrefs.GetString("UserRecentAssetHistory");
             if (assetHistoryString != null)
             {
                 assetHistory.Clear();
-                assetHistory.AddRange(assetHistoryString.Split(';'));
+                assetHistory.AddRange(selectionHistoryString.Split(';'));
             }
-            currentAssetHistoryItemIndex = assetHistory.Count - 1;
+
+            currentSelectionHistoryItemIndex = selectionHistory.Count - 1;
         }
 
         private static void SaveHistory()
         {
+            PlayerPrefs.SetString("UserRecentSelectionHistory", string.Join(';', selectionHistory));
             PlayerPrefs.SetString("UserRecentAssetHistory", string.Join(';', assetHistory));
         }
     }
