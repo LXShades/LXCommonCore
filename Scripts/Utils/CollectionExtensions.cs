@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace LX.Common.Core
         {
             foreach (T item in theArray)
             {
-                if (item == itemToFind)
+                if (EqualityComparer<T>.Default.Equals(item, itemToFind))
                     return true;
             }
             return false;
@@ -30,6 +31,16 @@ namespace LX.Common.Core
             for (int idx = theArray.Length - 1; idx >= 1; idx--)
                 theArray[idx] = theArray[idx - 1];
             theArray[0] = itemToAppend;
+        }
+
+        public static bool Contains<T>(this T[] theArray, Predicate<T> item)
+        {
+            for (int i = 0; i < theArray.Length; i++)
+            {
+                if (item(theArray[i]))
+                    return true;
+            }
+            return false;
         }
     }
 }
