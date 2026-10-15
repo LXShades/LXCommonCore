@@ -20,5 +20,11 @@ namespace LX.Common.Core
             float converted = ToUnsigned360Range(angle);
             return converted > 180f ? converted - 360 : converted;
         }
+
+        /// <summary>
+        /// Converts a direction to a heading in radians, if the direction vector is equivalent to Sin(angle), Cos(angle)
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ToHeadingSC(in Vector2 direction) => Mathf.Atan2(direction.x, direction.y);
     }
 }
