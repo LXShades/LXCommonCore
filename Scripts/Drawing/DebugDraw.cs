@@ -414,7 +414,7 @@ public static class DebugDraw
 
     public static void DrawCapsuleFromCentres(Vector3 start, Vector3 end, float radius, Style style, int numLongitudeSegments = 4, int numTipSegments = 8)
     {
-        Vector3 startToEnd = (end - start).normalized;
+        Vector3 startToEnd = end != start ? (end - start).normalized : Vector3.up; // if start is end, might still be a sphere
         DrawCapsule(start - startToEnd * radius, end + startToEnd * radius, radius, style, numLongitudeSegments, numTipSegments);
     }
 

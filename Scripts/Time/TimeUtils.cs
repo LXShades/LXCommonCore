@@ -25,6 +25,17 @@ public struct TickTracker
     }
 }
 
+/// <summary>
+/// Marks a certain time. Makes it easy to measure time since and time until (without needing to go as far as a Timer)
+/// </summary>
+public struct TimeMark
+{
+    public double ReferenceTime;
+
+    public float TimeSince => Mathf.Max((float)(Time.timeAsDouble - ReferenceTime), 0);
+    public float TimeUntil => Mathf.Max((float)(ReferenceTime - Time.timeAsDouble), 0);
+}
+
 public static class TimeUtils
 {
     [StructLayout(LayoutKind.Explicit)]
@@ -138,4 +149,7 @@ public static class TimeUtils
         timerStringChars[4] = (char)('0' + ((secondsClamped % 60) % 10));
         return new string(timerStringChars);
     }
+
+    public static void SetNow(this ref TimeMark timeMark) => timeMark.ReferenceTime = Time.timeAsDouble;
+    public static void SetLater(this ref TimeMark timeMark, float duration) => timeMark.ReferenceTime = Time.timeAsDouble + duration;
 }

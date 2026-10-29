@@ -98,6 +98,9 @@ public static class VectorExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Clamped(in this Vector3 vec, float maxMagnitude) => Vector3.ClampMagnitude(vec, maxMagnitude);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 Clamped(in this Vector2 vec, float maxMagnitude) => Vector2.ClampMagnitude(vec, maxMagnitude);
+
     /// <summary>
     /// Returns the vector with its horizontal (x,z) components clamped to the given max magnitude
     /// </summary>
