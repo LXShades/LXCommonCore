@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -63,16 +65,29 @@ namespace LX.Common.Core.Editor
                     button.iconImage = icon;
                     button.style.flexDirection = FlexDirection.Column;
                     button.clicked += () => {
-                        /*if ((AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) && AssetDatabase.CanOpenAssetInEditor(obj.GetEntityId()))
-                            AssetDatabase.OpenAsset(obj);
-                        else*/
-                            Selection.activeObject = obj;
+                        bool isAsset = (AssetDatabase.IsMainAsset(obj) || AssetDatabase.IsSubAsset(obj)) && AssetDatabase.CanOpenAssetInEditor(obj.GetEntityId());
+                        Selection.activeObject = obj;
 
+                        if (isAsset)
+                            ClearProjectWindowSearchbar();
                         scrollView.verticalScroller.value = 0f;
                     };
 
                     scrollView.Add(button);
                 }
+            }
+        }
+
+        // in case the user has an asset search open - which prevents the clicked asset from being selected
+        public static void ClearProjectWindowSearchbar()
+        {
+            EditorWindow projectBrowserWindow = Resources.FindObjectsOfTypeAll<EditorWindow>().First(x => x.GetType().ToString() == "UnityEditor.ProjectBrowser");
+
+            if (projectBrowserWindow)
+            {
+                MethodInfo setSearchMethod = projectBrowserWindow.GetType().GetMethod("SetSearch", new[] { typeof(string) });
+                if (setSearchMethod != null)
+                    setSearchMethod?.Invoke(projectBrowserWindow, new[] { "" });
             }
         }
     }
